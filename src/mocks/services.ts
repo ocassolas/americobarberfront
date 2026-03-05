@@ -1,0 +1,58 @@
+import type { Service } from '@/types';
+
+export const MOCK_SERVICES: Service[] = [
+    {
+        id: 'service-1',
+        name: 'Corte Degradê',
+        duration: 30,
+        price: 45.0,
+        icon: 'scissors',
+        description: 'Corte masculino com degradê personalizado',
+        active: true,
+    },
+    {
+        id: 'service-2',
+        name: 'Barba',
+        duration: 20,
+        price: 30.0,
+        icon: 'pen-tool',
+        description: 'Modelagem e aparação de barba com navalha',
+        active: true,
+    },
+    {
+        id: 'service-3',
+        name: 'Corte + Barba',
+        duration: 45,
+        price: 65.0,
+        icon: 'sparkles',
+        description: 'Combo completo de corte e barba',
+        active: true,
+    },
+    {
+        id: 'service-4',
+        name: 'Sobrancelha',
+        duration: 10,
+        price: 15.0,
+        icon: 'eye',
+        description: 'Design e limpeza de sobrancelha',
+        active: true,
+    },
+    {
+        id: 'service-5',
+        name: 'Pigmentação',
+        duration: 40,
+        price: 80.0,
+        icon: 'palette',
+        description: 'Pigmentação capilar para cobertura de falhas',
+        active: true,
+    },
+    {
+        id: 'service-6',
+        name: 'Hidratação Capilar',
+        duration: 30,
+        price: 50.0,
+        icon: 'droplets',
+        description: 'Tratamento de hidratação profunda',
+        active: true,
+    },
+];
