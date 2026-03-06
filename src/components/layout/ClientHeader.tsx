@@ -26,11 +26,12 @@ export function ClientHeader() {
     return (
         <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${headerBg}`}>
             <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-                <Link to="/" className="flex items-center gap-2 group" aria-label="Página inicial">
-                    <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center font-heading font-bold text-bg-primary text-sm">
-                        AB
-                    </div>
-                    <span className="font-heading font-semibold text-lg hidden sm:block">{BUSINESS.name}</span>
+                <Link to="/" className="flex items-center gap-2.5 group" aria-label="Página inicial">
+                    <img
+                        src="/logo.png"
+                        alt={BUSINESS.name}
+                        className="h-10 w-auto object-contain transition-transform group-hover:scale-105"
+                    />
                 </Link>
 
                 <nav className="hidden md:flex items-center gap-6">
