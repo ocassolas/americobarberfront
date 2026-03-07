@@ -20,19 +20,21 @@ export function DashboardPage() {
     const today = new Date();
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-    const todayAppointments = appointments.filter((a) => a.date === todayStr && a.status !== 'cancelled');
-    const todayRevenue = todayAppointments.reduce((sum, a) => sum + a.totalPrice, 0);
+    const fmtTime = (h: number, m: number) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+
+    const todayAppointments = appointments.filter((a) => a.date === todayStr && a.status !== 'CANCELADO_POR_CLIENTE' && a.status !== 'CANCELADO_POR_BARBEIRO');
+    const todayRevenue = todayAppointments.reduce((sum, a) => sum + 0, 0); // Backend OAS has no price
     const nextApt = todayAppointments
-        .filter((a) => a.time >= format(today, 'HH:mm'))
-        .sort((a, b) => a.time.localeCompare(b.time))[0];
+        .filter((a) => fmtTime(a.startTime.hour, a.startTime.minute) >= format(today, 'HH:mm'))
+        .sort((a, b) => fmtTime(a.startTime.hour, a.startTime.minute).localeCompare(fmtTime(b.startTime.hour, b.startTime.minute)))[0];
 
     const formatPrice = (p: number) => p.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
     const stats = [
-        { label: 'Agendamentos Hoje', value: todayAppointments.length.toString(), icon: Calendar, color: 'text-info bg-info/10' },
-        { label: 'Receita do Dia', value: formatPrice(todayRevenue), icon: DollarSign, color: 'text-success bg-success/10' },
-        { label: 'Clientes Atendidos', value: appointments.filter((a) => a.date === todayStr && a.status === 'completed').length.toString(), icon: Users, color: 'text-accent bg-accent/10' },
-        { label: 'Próximo Horário', value: nextApt ? nextApt.time : '--:--', icon: Clock, color: 'text-warning bg-warning/10' },
+        { label: 'Hoje', value: todayAppointments.length.toString(), icon: Calendar, color: 'text-info bg-info/10' },
+        { label: 'Receita', value: formatPrice(0), icon: DollarSign, color: 'text-success bg-success/10' },
+        { label: 'Concluídos', value: appointments.filter((a) => a.date === todayStr && a.status === 'CONCLUIDO').length.toString(), icon: Users, color: 'text-accent bg-accent/10' },
+        { label: 'Próximo', value: nextApt ? fmtTime(nextApt.startTime.hour, nextApt.startTime.minute) : '--:--', icon: Clock, color: 'text-warning bg-warning/10' },
     ];
 
     if (loading) {
@@ -89,21 +91,21 @@ export function DashboardPage() {
                 ) : (
                     <div className="space-y-2">
                         {todayAppointments
-                            .sort((a, b) => a.time.localeCompare(b.time))
+                            .sort((a, b) => fmtTime(a.startTime.hour, a.startTime.minute).localeCompare(fmtTime(b.startTime.hour, b.startTime.minute)))
                             .map((apt) => (
                                 <div
                                     key={apt.id}
                                     className="flex items-center gap-4 p-3 rounded-xl bg-bg-input hover:bg-accent/5 transition"
                                 >
-                                    <span className="font-mono font-semibold text-accent text-sm w-14">{apt.time}</span>
+                                    <span className="font-mono font-semibold text-accent text-sm w-14">{fmtTime(apt.startTime.hour, apt.startTime.minute)}</span>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-medium truncate">{apt.clientName}</p>
                                         <p className="text-xs text-text-secondary truncate">
-                                            {apt.services.map((s) => s.name).join(', ')}
+                                            {apt.serviceName}
                                         </p>
                                     </div>
                                     <span className="text-xs text-text-secondary">{apt.barberName.split(' ')[0]}</span>
-                                    <span className="font-mono text-sm text-accent">{formatPrice(apt.totalPrice)}</span>
+                                    <span className="font-mono text-sm text-accent"></span>
                                 </div>
                             ))}
                     </div>

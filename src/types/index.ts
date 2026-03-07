@@ -1,20 +1,52 @@
-export interface Barber {
-    id: string;
+export interface LocalTime {
+    hour: number;
+    minute: number;
+    second: number;
+    nano: number;
+}
+
+export interface UserResponse {
+    id: number;
     name: string;
-    specialty: string;
-    bio: string;
-    avatar: string;
-    rating: number;
+    email: string;
+    cpf: string;
+    phone: string;
+    role: string;
+    active: boolean;
+    isBarber: boolean;
+    createdAt: string;
+    assignedBarberId: number | null;
+    slotIntervalMinutes: number;
+}
+
+export interface LoginResponse {
+    token: string;
+    type: string;
+    userId: number;
+    name: string;
+    email: string;
+    role: string;
+    isBarber: boolean;
+}
+
+export interface Barber extends UserResponse {
+    // Frontend specific properties for UI that don't come from API directly
+    specialty?: string;
+    bio?: string;
+    avatar?: string;
+    rating?: number;
 }
 
 export interface Service {
-    id: string;
+    id: number;
     name: string;
-    duration: number;
+    durationMinutes: number;
     price: number;
-    icon: string;
+    icon?: string; // Frontend specific property
     description: string;
     active: boolean;
+    barberId: number;
+    barberName?: string;
 }
 
 export interface TimeSlot {
@@ -23,40 +55,69 @@ export interface TimeSlot {
 }
 
 export interface Appointment {
-    id: string;
+    id: number;
+    clientId: number;
     clientName: string;
-    clientPhone: string;
-    notes: string;
-    barberId: string;
+    barberId: number;
     barberName: string;
     services: Service[];
-    date: string;
-    time: string;
-    totalDuration: number;
     totalPrice: number;
-    status: 'confirmed' | 'completed' | 'cancelled';
+    date: string;
+    startTime: LocalTime;
+    endTime: LocalTime;
+    status: 'AGENDADO' | 'CANCELADO_POR_CLIENTE' | 'CANCELADO_POR_BARBEIRO' | 'CONCLUIDO' | 'PROPOSTA_REAGENDAMENTO';
+    observation: string;
+    barberMessage: string;
+    proposedDate: string | null;
+    proposedStartTime: LocalTime | null;
+    proposedEndTime: LocalTime | null;
+    clientPhone: string;
+    barberPhone: string;
     createdAt: string;
+}
+
+export interface AppointmentRequest {
+    clientId: number;
+    barberId: number;
+    serviceIds: number[];
+    date: string;
+    startTime: LocalTime;
+    observation?: string;
+}
+
+export interface AvailabilityResponse {
+    id: number;
+    barberId: number;
+    dayOfWeek: number;
+    startTime: LocalTime;
+    endTime: LocalTime;
+}
+
+export interface AvailabilityRequest {
+    dayOfWeek: number;
+    startTime: LocalTime;
+    endTime: LocalTime;
+}
+
+export interface WorkSchedule {
+    barberId: number;
+    barberName: string;
+    workDays: WorkDay[];
+    daysOff: DayOff[];
 }
 
 export interface WorkDay {
     dayOfWeek: number;
     enabled: boolean;
-    openTime: string;
+    openTime: string; // Keep string for UI "HH:mm" handling
     closeTime: string;
 }
 
 export interface DayOff {
-    id: string;
-    barberId: string;
-    date: string;
-    reason: string;
-}
-
-export interface WorkSchedule {
-    barberId: string;
-    barberName: string;
-    workDays: WorkDay[];
-    daysOff: DayOff[];
+    id: string | number; // String for mocks usually
+    barberId: number;
+    date: string; // ISO yyyy-MM-dd
+    reason: string; // optional from UI perspective
 }
 
 export interface BusinessConfig {
@@ -87,7 +148,7 @@ export interface Toast {
 
 export interface BookingState {
     step: number;
-    barberId: string | null;
+    barberId: number | null;
     barberName: string | null;
     services: Service[];
     date: string | null;

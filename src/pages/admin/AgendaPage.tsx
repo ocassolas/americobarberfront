@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Clock, User } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, User, Phone } from 'lucide-react';
 import { getAppointments } from '@/services/api';
 import type { Appointment } from '@/types';
 import {
@@ -32,7 +32,9 @@ export function AgendaPage() {
         `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
     const getAptsForDay = (d: Date) =>
-        appointments.filter((a) => a.date === fmtDate(d) && a.status !== 'cancelled');
+        appointments.filter((a) => a.date === fmtDate(d) && a.status !== 'CANCELADO_POR_CLIENTE' && a.status !== 'CANCELADO_POR_BARBEIRO');
+
+    const fmtTime = (h: number, m: number) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 
     const navigate = (dir: number) => {
         if (view === 'week') setCurrentDate((p) => dir > 0 ? addWeeks(p, 1) : subWeeks(p, 1));
@@ -111,7 +113,7 @@ export function AgendaPage() {
                                             onClick={() => setSelected(apt)}
                                             className="w-full text-left p-1.5 rounded-lg bg-accent/10 hover:bg-accent/20 transition text-xs"
                                         >
-                                            <span className="font-mono text-accent font-medium">{apt.time}</span>
+                                            <span className="font-mono text-accent font-medium">{fmtTime(apt.startTime.hour, apt.startTime.minute)}</span>
                                             <p className="truncate text-text-primary">{apt.clientName.split(' ')[0]}</p>
                                         </button>
                                     ))}
@@ -127,17 +129,27 @@ export function AgendaPage() {
                     ) : (
                         <div className="space-y-2">
                             {getAptsForDay(currentDate)
-                                .sort((a, b) => a.time.localeCompare(b.time))
+                                .sort((a, b) => {
+                                    const ta = fmtTime(a.startTime.hour, a.startTime.minute);
+                                    const tb = fmtTime(b.startTime.hour, b.startTime.minute);
+                                    return ta.localeCompare(tb);
+                                })
                                 .map((apt) => (
                                     <button
                                         key={apt.id}
                                         onClick={() => setSelected(apt)}
                                         className="w-full flex items-center gap-4 p-3 rounded-xl bg-bg-input hover:bg-accent/5 transition text-left"
                                     >
-                                        <span className="font-mono font-semibold text-accent w-14 text-sm">{apt.time}</span>
+                                        <span className="font-mono font-semibold text-accent w-14 text-sm">{fmtTime(apt.startTime.hour, apt.startTime.minute)}</span>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-medium">{apt.clientName}</p>
-                                            <p className="text-xs text-text-secondary">{apt.services.map((s) => s.name).join(', ')}</p>
+                                            <div className="flex gap-1 flex-wrap mt-0.5">
+                                                {apt.services?.map(s => (
+                                                    <span key={s.id} className="text-[10px] bg-accent/10 px-1.5 py-0.5 rounded text-accent">
+                                                        {s.name}
+                                                    </span>
+                                                ))}
+                                            </div>
                                         </div>
                                         <span className="text-xs text-text-secondary">{apt.barberName.split(' ')[0]}</span>
                                     </button>
@@ -159,12 +171,40 @@ export function AgendaPage() {
                         <h3 className="font-heading font-semibold text-lg mb-4">Detalhes do Agendamento</h3>
                         <div className="space-y-3 text-sm">
                             <div className="flex justify-between"><span className="text-text-secondary">Cliente</span><span>{selected.clientName}</span></div>
-                            <div className="flex justify-between"><span className="text-text-secondary">Telefone</span><span className="font-mono">{selected.clientPhone}</span></div>
                             <div className="flex justify-between"><span className="text-text-secondary">Barbeiro</span><span>{selected.barberName}</span></div>
-                            <div className="flex justify-between"><span className="text-text-secondary">Horário</span><span className="font-mono">{selected.time}</span></div>
-                            <div className="flex justify-between"><span className="text-text-secondary">Duração</span><span>{selected.totalDuration}min</span></div>
-                            <div><span className="text-text-secondary block mb-1">Serviços</span>{selected.services.map((s) => s.name).join(', ')}</div>
-                            <div className="flex justify-between font-semibold pt-2 border-t border-border"><span>Total</span><span className="text-accent font-mono">{formatPrice(selected.totalPrice)}</span></div>
+                            <div className="flex justify-between"><span className="text-text-secondary">Horário</span><span className="font-mono">{fmtTime(selected.startTime.hour, selected.startTime.minute)}</span></div>
+                            <div className="flex justify-between"><span className="text-text-secondary">Total</span><span className="font-mono text-accent font-bold">{formatPrice(selected.totalPrice)}</span></div>
+                            <div>
+                                <span className="text-text-secondary block mb-1">Serviços</span>
+                                <div className="space-y-1">
+                                    {selected.services?.map(s => (
+                                        <div key={s.id} className="flex justify-between text-xs">
+                                            <span>{s.name}</span>
+                                            <span className="text-text-secondary">{formatPrice(s.price)}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            {selected.observation && (
+                                <div>
+                                    <span className="text-text-secondary block mb-1">Observações do Cliente</span>
+                                    <p className="bg-bg-input p-2 rounded-lg italic text-xs">"{selected.observation}"</p>
+                                </div>
+                            )}
+                            {selected.clientPhone && (
+                                <div className="pt-2">
+                                    <a
+                                        href={`https://wa.me/55${selected.clientPhone.replace(/\D/g, '')}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-success hover:bg-success/90 text-white text-sm font-medium transition"
+                                    >
+                                        <Phone size={16} />
+                                        WhatsApp do Cliente
+                                    </a>
+                                </div>
+                            )}
+                            {/* Backend OAS does not send totalDuration or totalPrice explicitly on the appointment payload */}
                         </div>
                         <button
                             onClick={() => setSelected(null)}

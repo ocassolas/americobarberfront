@@ -1,45 +1,55 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Phone, Search, Calendar, Clock, Scissors, XCircle, AlertTriangle } from 'lucide-react';
-import { getAppointmentsByPhone, cancelAppointment } from '@/services/api';
+import { Phone, Search, Calendar, Clock, Scissors, XCircle, AlertTriangle, User } from 'lucide-react';
+import { getAppointments, cancelAppointment } from '@/services/api';
 import { useToastStore } from '@/stores/useToastStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { TEXT } from '@/config/constants';
 import type { Appointment } from '@/types';
 
 const STATUS_MAP = {
-    confirmed: { label: 'Confirmado', color: 'bg-success/15 text-success' },
-    completed: { label: 'Concluído', color: 'bg-info/15 text-info' },
-    cancelled: { label: 'Cancelado', color: 'bg-error/15 text-error' },
+    AGENDADO: { label: 'Confirmado', color: 'bg-success/15 text-success' },
+    CONCLUIDO: { label: 'Concluído', color: 'bg-info/15 text-info' },
+    CANCELADO_POR_CLIENTE: { label: 'Cancelado', color: 'bg-error/15 text-error' },
+    CANCELADO_POR_BARBEIRO: { label: 'Cancelado (Barbearia)', color: 'bg-error/15 text-error' },
+    PROPOSTA_REAGENDAMENTO: { label: 'Reagendamento Pendente', color: 'bg-warning/15 text-warning' }
 } as const;
 
 export function MyAppointmentsPage() {
-    const [phone, setPhone] = useState('');
     const [appointments, setAppointments] = useState<Appointment[]>([]);
-    const [searched, setSearched] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [cancelId, setCancelId] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [cancelId, setCancelId] = useState<number | null>(null);
+    const [cancelReason, setCancelReason] = useState('');
     const addToast = useToastStore((s) => s.addToast);
+    const { user } = useAuthStore();
 
-    const formatPhone = (value: string) => {
-        const digits = value.replace(/\D/g, '').slice(0, 11);
-        if (digits.length <= 2) return `(${digits}`;
-        if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-        return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-    };
-
-    const handleSearch = async () => {
+    const fetchAppointments = useCallback(async () => {
         setLoading(true);
-        const results = await getAppointmentsByPhone(phone);
-        setAppointments(results);
-        setSearched(true);
-        setLoading(false);
-    };
+        try {
+            const results = await getAppointments();
+            setAppointments(results);
+        } catch (err) {
+            console.error(err);
+            addToast('error', 'Erro ao carregar seus agendamentos.');
+        } finally {
+            setLoading(false);
+        }
+    }, [addToast]);
 
-    const handleCancel = async (id: string) => {
-        await cancelAppointment(id);
-        setAppointments((prev) => prev.map((a) => a.id === id ? { ...a, status: 'cancelled' as const } : a));
-        setCancelId(null);
-        addToast('success', TEXT.myAppointments.cancelled);
+    useEffect(() => {
+        fetchAppointments();
+    }, [fetchAppointments]);
+
+    const handleCancel = async (id: number) => {
+        try {
+            await cancelAppointment(id, cancelReason);
+            setAppointments((prev) => prev.map((a) => a.id === id ? { ...a, status: 'CANCELADO_POR_CLIENTE' as const, observation: cancelReason } : a));
+            setCancelId(null);
+            setCancelReason('');
+            addToast('success', TEXT.myAppointments.cancelled);
+        } catch {
+            addToast('error', 'Erro ao cancelar o agendamento.');
+        }
     };
 
     const formatDate = (d: string) => {
@@ -52,35 +62,13 @@ export function MyAppointmentsPage() {
     return (
         <div className="pt-20 pb-8 min-h-screen px-4">
             <div className="max-w-lg mx-auto">
-                <h1 className="font-heading text-2xl md:text-3xl font-bold text-center mb-2">{TEXT.myAppointments.title}</h1>
-                <p className="text-text-secondary text-sm text-center mb-8">{TEXT.myAppointments.subtitle}</p>
-
-                {/* Search form */}
-                <div className="flex gap-2 mb-8">
-                    <div className="flex-1 relative">
-                        <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
-                        <input
-                            type="tel"
-                            value={phone}
-                            onChange={(e) => setPhone(formatPhone(e.target.value))}
-                            placeholder="(11) 99999-9999"
-                            className="w-full bg-bg-input input-surface border border-border rounded-xl pl-10 pr-4 py-3 text-sm font-mono focus:border-accent focus:ring-1 focus:ring-accent/30 transition outline-none"
-                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                        />
+                <header className="text-center mb-8">
+                    <h1 className="font-heading text-2xl md:text-3xl font-bold mb-2">{TEXT.myAppointments.title}</h1>
+                    <div className="flex items-center justify-center gap-2 text-accent">
+                        <User size={16} />
+                        <span className="text-sm font-medium">{user?.name}</span>
                     </div>
-                    <button
-                        onClick={handleSearch}
-                        disabled={phone.replace(/\D/g, '').length < 11}
-                        className="px-5 py-3 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-bg-primary font-semibold rounded-xl transition flex items-center gap-2 text-sm"
-                    >
-                        {loading ? (
-                            <div className="w-4 h-4 border-2 border-bg-primary/30 border-t-bg-primary rounded-full animate-spin" />
-                        ) : (
-                            <Search size={16} />
-                        )}
-                        {TEXT.myAppointments.search}
-                    </button>
-                </div>
+                </header>
 
                 {/* Results */}
                 {loading && (
@@ -91,14 +79,14 @@ export function MyAppointmentsPage() {
                     </div>
                 )}
 
-                {!loading && searched && appointments.length === 0 && (
+                {!loading && appointments.length === 0 && (
                     <div className="text-center py-12">
                         <Calendar size={48} className="text-text-disabled mx-auto mb-4" />
                         <p className="text-text-secondary">{TEXT.myAppointments.empty}</p>
                     </div>
                 )}
 
-                {!loading && (
+                {!loading && appointments.length > 0 && (
                     <div className="space-y-3">
                         <AnimatePresence>
                             {appointments.map((apt) => (
@@ -114,18 +102,18 @@ export function MyAppointmentsPage() {
                                                 <Calendar size={14} className="text-accent" />
                                                 <span className="text-sm font-mono">{formatDate(apt.date)}</span>
                                                 <Clock size={14} className="text-accent ml-2" />
-                                                <span className="text-sm font-mono">{apt.time}</span>
+                                                <span className="text-sm font-mono">{String(apt.startTime.hour).padStart(2, '0')}:{String(apt.startTime.minute).padStart(2, '0')}</span>
                                             </div>
                                             <p className="text-sm text-text-secondary">{apt.barberName}</p>
                                         </div>
-                                        <span className={`px-2.5 py-1 rounded-lg text-xs font-medium ${STATUS_MAP[apt.status].color}`}>
-                                            {STATUS_MAP[apt.status].label}
+                                        <span className={`px-2.5 py-1 rounded-lg text-xs font-medium ${STATUS_MAP[apt.status]?.color || 'bg-border/50 text-text-secondary'}`}>
+                                            {STATUS_MAP[apt.status]?.label || apt.status}
                                         </span>
                                     </div>
 
                                     <div className="flex items-center gap-2 flex-wrap mb-3">
-                                        {apt.services.map((s) => (
-                                            <span key={s.id} className="px-2 py-0.5 bg-bg-input rounded-lg text-xs text-text-secondary">
+                                        {apt.services?.map((s) => (
+                                            <span key={s.id} className="px-2 py-0.5 bg-bg-input rounded-lg text-xs text-accent/80 border border-accent/10">
                                                 {s.name}
                                             </span>
                                         ))}
@@ -133,14 +121,25 @@ export function MyAppointmentsPage() {
 
                                     <div className="flex items-center justify-between">
                                         <span className="font-mono font-semibold text-accent">{formatPrice(apt.totalPrice)}</span>
-                                        {apt.status === 'confirmed' && (
-                                            <button
-                                                onClick={() => setCancelId(apt.id)}
-                                                className="text-xs text-error hover:text-error/80 transition flex items-center gap-1"
-                                            >
-                                                <XCircle size={14} />
-                                                {TEXT.myAppointments.cancel}
-                                            </button>
+                                        {(apt.status === 'AGENDADO' || apt.status === 'PROPOSTA_REAGENDAMENTO') && (
+                                            <div className="flex items-center gap-3">
+                                                <a
+                                                    href={`https://wa.me/55${apt.barberPhone?.replace(/\D/g, '')}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-xs text-success hover:text-success/80 transition flex items-center gap-1"
+                                                >
+                                                    <Phone size={14} />
+                                                    WhatsApp
+                                                </a>
+                                                <button
+                                                    onClick={() => setCancelId(apt.id)}
+                                                    className="text-xs text-error hover:text-error/80 transition flex items-center gap-1"
+                                                >
+                                                    <XCircle size={14} />
+                                                    {TEXT.myAppointments.cancel}
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                 </motion.div>
@@ -170,6 +169,16 @@ export function MyAppointmentsPage() {
                                     <AlertTriangle size={40} className="text-warning mx-auto mb-3" />
                                     <h3 className="font-heading font-semibold text-lg">{TEXT.myAppointments.cancel}</h3>
                                     <p className="text-text-secondary text-sm mt-1">{TEXT.myAppointments.cancelConfirm}</p>
+                                </div>
+                                <div className="mb-4">
+                                    <label className="text-xs font-medium mb-1 block">Motivo (opcional)</label>
+                                    <textarea
+                                        value={cancelReason}
+                                        onChange={(e) => setCancelReason(e.target.value)}
+                                        className="w-full bg-bg-input input-surface border border-border rounded-xl px-3 py-2 text-sm focus:border-accent outline-none transition"
+                                        placeholder="Ex: imprevisto no trabalho"
+                                        rows={2}
+                                    />
                                 </div>
                                 <div className="flex gap-3">
                                     <button

@@ -1,30 +1,36 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Filter, BarChart3, TrendingUp } from 'lucide-react';
-import { getAppointments } from '@/services/api';
-import { MOCK_BARBERS } from '@/mocks/barbers';
-import type { Appointment } from '@/types';
+import { getAppointments, getBarbers } from '@/services/api';
+import type { Appointment, Barber } from '@/types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export function HistoryPage() {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
+    const [barbers, setBarbers] = useState<Barber[]>([]);
     const [loading, setLoading] = useState(true);
     const [barberFilter, setBarberFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
 
     useEffect(() => {
-        getAppointments().then((data) => { setAppointments(data); setLoading(false); });
+        Promise.all([getAppointments(), getBarbers()]).then(([apts, bz]) => {
+            setAppointments(apts);
+            setBarbers(bz);
+            setLoading(false);
+        }).catch(console.error);
     }, []);
 
     const filtered = appointments.filter((a) => {
-        if (barberFilter !== 'all' && a.barberId !== barberFilter) return false;
+        if (barberFilter !== 'all' && a.barberId !== Number(barberFilter)) return false;
         if (statusFilter !== 'all' && a.status !== statusFilter) return false;
         return true;
     });
 
-    const totalRevenue = filtered.filter((a) => a.status !== 'cancelled').reduce((sum, a) => sum + a.totalPrice, 0);
+    const totalRevenue = appointments
+        .filter((a) => a.status === 'AGENDADO' || a.status === 'CONCLUIDO')
+        .reduce((sum, a) => sum + (a.totalPrice || 0), 0);
     const formatPrice = (p: number) => p.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     const formatDate = (d: string) => { const [y, m, day] = d.split('-'); return `${day}/${m}/${y}`; };
 
@@ -32,19 +38,23 @@ export function HistoryPage() {
     const chartData = Array.from({ length: 7 }).map((_, i) => {
         const d = subDays(new Date(), 6 - i);
         const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        const dayApts = appointments.filter((a) => a.date === dateStr && a.status !== 'cancelled');
+        const dayApts = appointments.filter((a) => a.date === dateStr && a.status !== 'CANCELADO_POR_CLIENTE' && a.status !== 'CANCELADO_POR_BARBEIRO');
         return {
             day: format(d, 'EEE', { locale: ptBR }),
             agendamentos: dayApts.length,
-            receita: dayApts.reduce((sum, a) => sum + a.totalPrice, 0),
+            receita: dayApts.reduce((sum, a) => sum + (a.totalPrice || 0), 0),
         };
     });
 
-    const STATUS_MAP = {
-        confirmed: { label: 'Confirmado', color: 'bg-success/15 text-success' },
-        completed: { label: 'Concluído', color: 'bg-info/15 text-info' },
-        cancelled: { label: 'Cancelado', color: 'bg-error/15 text-error' },
-    } as const;
+    const STATUS_MAP: Record<string, { label: string; color: string }> = {
+        AGENDADO: { label: 'Confirmado', color: 'bg-success/15 text-success' },
+        CONCLUIDO: { label: 'Concluído', color: 'bg-info/15 text-info' },
+        CANCELADO_POR_CLIENTE: { label: 'Cancelado', color: 'bg-error/15 text-error' },
+        CANCELADO_POR_BARBEIRO: { label: 'Cancelado (Barbearia)', color: 'bg-error/15 text-error' },
+        PROPOSTA_REAGENDAMENTO: { label: 'Reagendamento Pendente', color: 'bg-warning/15 text-warning' }
+    };
+
+    const fmtTime = (h: number, m: number) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 
     if (loading) {
         return <div className="space-y-4"><div className="skeleton h-12 rounded-xl w-48" /><div className="skeleton h-64 rounded-2xl" /><div className="skeleton h-96 rounded-2xl" /></div>;
@@ -63,7 +73,7 @@ export function HistoryPage() {
                     aria-label="Filtrar por barbeiro"
                 >
                     <option value="all">Todos os barbeiros</option>
-                    {MOCK_BARBERS.map((b) => (
+                    {barbers.map((b) => (
                         <option key={b.id} value={b.id}>{b.name}</option>
                     ))}
                 </select>
@@ -74,9 +84,9 @@ export function HistoryPage() {
                     aria-label="Filtrar por status"
                 >
                     <option value="all">Todos os status</option>
-                    <option value="confirmed">Confirmado</option>
-                    <option value="completed">Concluído</option>
-                    <option value="cancelled">Cancelado</option>
+                    <option value="AGENDADO">Confirmado</option>
+                    <option value="CONCLUIDO">Concluído</option>
+                    <option value="CANCELADO_POR_CLIENTE">Cancelado</option>
                 </select>
             </div>
 
@@ -92,11 +102,11 @@ export function HistoryPage() {
                 </div>
                 <div className="bg-bg-card card-surface border border-border rounded-2xl p-4">
                     <p className="text-xs text-text-secondary mb-1">Concluídos</p>
-                    <p className="text-xl font-bold font-mono text-success">{filtered.filter((a) => a.status === 'completed').length}</p>
+                    <p className="text-xl font-bold font-mono text-success">{filtered.filter((a) => a.status === 'CONCLUIDO').length}</p>
                 </div>
                 <div className="bg-bg-card card-surface border border-border rounded-2xl p-4">
                     <p className="text-xs text-text-secondary mb-1">Cancelados</p>
-                    <p className="text-xl font-bold font-mono text-error">{filtered.filter((a) => a.status === 'cancelled').length}</p>
+                    <p className="text-xl font-bold font-mono text-error">{filtered.filter((a) => a.status === 'CANCELADO_POR_CLIENTE' || a.status === 'CANCELADO_POR_BARBEIRO').length}</p>
                 </div>
             </div>
 
@@ -158,13 +168,13 @@ export function HistoryPage() {
                             {filtered.map((apt) => (
                                 <tr key={apt.id} className="border-b border-border/50 hover:bg-white/[0.02] transition">
                                     <td className="px-4 py-3 font-mono text-xs">{formatDate(apt.date)}</td>
-                                    <td className="px-4 py-3 font-mono text-xs">{apt.time}</td>
+                                    <td className="px-4 py-3 font-mono text-xs">{fmtTime(apt.startTime.hour, apt.startTime.minute)}</td>
                                     <td className="px-4 py-3 text-xs hidden md:table-cell">{apt.clientName}</td>
                                     <td className="px-4 py-3 text-xs hidden md:table-cell">{apt.barberName}</td>
                                     <td className="px-4 py-3 font-mono text-xs text-accent">{formatPrice(apt.totalPrice)}</td>
                                     <td className="px-4 py-3">
-                                        <span className={`px-2 py-0.5 rounded-lg text-[10px] font-medium ${STATUS_MAP[apt.status].color}`}>
-                                            {STATUS_MAP[apt.status].label}
+                                        <span className={`px-2 py-0.5 rounded-lg text-[10px] font-medium ${STATUS_MAP[apt.status]?.color || 'bg-gray-400'}`}>
+                                            {STATUS_MAP[apt.status]?.label || apt.status}
                                         </span>
                                     </td>
                                 </tr>

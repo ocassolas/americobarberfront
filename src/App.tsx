@@ -12,6 +12,8 @@ import { LandingPage } from '@/pages/client/LandingPage';
 import { BookingPage } from '@/pages/client/BookingPage';
 import { MyAppointmentsPage } from '@/pages/client/MyAppointmentsPage';
 import { SettingsPage } from '@/pages/client/SettingsPage';
+import { ClientLoginPage } from '@/pages/client/ClientLoginPage';
+import { ClientRegisterPage } from '@/pages/client/ClientRegisterPage';
 
 // Admin pages
 import { AdminLoginPage } from '@/pages/admin/AdminLoginPage';
@@ -25,6 +27,12 @@ import { AdminSettingsPage } from '@/pages/admin/AdminSettingsPage';
 function AdminGuard({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   if (!isAuthenticated) return <Navigate to="/admin" replace />;
+  return <>{children}</>;
+}
+
+function ClientGuard({ children }: { children: React.ReactNode }) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  if (!isAuthenticated) return <Navigate to="/entrar" replace />;
   return <>{children}</>;
 }
 
@@ -46,11 +54,18 @@ function App() {
       <Routes>
         {/* Client routes */}
         <Route element={<ClientLayout />}>
+          {/* Public client routes */}
           <Route path="/" element={<LandingPage />} />
-          <Route path="/agendar" element={<BookingPage />} />
-          <Route path="/meus-agendamentos" element={<MyAppointmentsPage />} />
-          <Route path="/configuracoes" element={<SettingsPage />} />
+
+          {/* Authenticated client routes */}
+          <Route path="/agendar" element={<ClientGuard><BookingPage /></ClientGuard>} />
+          <Route path="/meus-agendamentos" element={<ClientGuard><MyAppointmentsPage /></ClientGuard>} />
+          <Route path="/configuracoes" element={<ClientGuard><SettingsPage /></ClientGuard>} />
         </Route>
+
+        {/* Client Auth */}
+        <Route path="/entrar" element={<ClientLoginPage />} />
+        <Route path="/cadastrar" element={<ClientRegisterPage />} />
 
         {/* Admin login */}
         <Route path="/admin" element={<AdminLoginPage />} />

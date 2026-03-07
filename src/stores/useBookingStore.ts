@@ -3,7 +3,7 @@ import type { Service, BookingState } from '@/types';
 
 interface BookingStore extends BookingState {
     setStep: (step: number) => void;
-    setBarber: (id: string | null, name: string | null) => void;
+    setBarber: (id: number | null, name: string | null) => void;
     toggleService: (service: Service) => void;
     setDate: (date: string | null) => void;
     setTime: (time: string | null) => void;
@@ -46,6 +46,6 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
     setClientPhone: (clientPhone) => set({ clientPhone }),
     setNotes: (notes) => set({ notes }),
     reset: () => set(initialState),
-    totalDuration: () => get().services.reduce((sum, s) => sum + s.duration, 0),
+    totalDuration: () => get().services.reduce((sum, s) => sum + s.durationMinutes, 0),
     totalPrice: () => get().services.reduce((sum, s) => sum + s.price, 0),
 }));

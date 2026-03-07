@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { apiClient } from '@/services/apiClient';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -8,11 +9,11 @@ import {
 } from 'lucide-react';
 import { useBookingStore } from '@/stores/useBookingStore';
 import { useToastStore } from '@/stores/useToastStore';
-import { MOCK_BARBERS } from '@/mocks/barbers';
-import { MOCK_SERVICES } from '@/mocks/services';
-import { getTimeSlots, createAppointment } from '@/services/api';
-import { TEXT } from '@/config/constants';
-import type { TimeSlot, Service } from '@/types';
+import { getTimeSlots, createAppointment, getBarbers, getServices } from '@/services/api';
+import { TEXT, BUSINESS } from '@/config/constants';
+import { formatWhatsAppMessage, openWhatsApp } from '@/utils/whatsapp';
+import type { TimeSlot, Service, Barber } from '@/types';
+import { useAuthStore } from '@/stores/useAuthStore';
 import {
     format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval,
     getDay, isBefore, startOfDay, isToday, isSameMonth, isSameDay,
@@ -31,10 +32,64 @@ const SERVICE_ICONS: Record<string, React.ReactNode> = {
 const STEPS = TEXT.booking.steps;
 
 const slideVariants = {
-    enter: (direction: number) => ({ x: direction > 0 ? 200 : -200, opacity: 0 }),
-    center: { x: 0, opacity: 1 },
-    exit: (direction: number) => ({ x: direction < 0 ? 200 : -200, opacity: 0 }),
+    enter: (direction: number) => ({ x: direction > 0 ? 50 : -50, opacity: 0 }),
+    center: { zIndex: 1, x: 0, opacity: 1 },
+    exit: (direction: number) => ({ zIndex: 0, x: direction < 0 ? 50 : -50, opacity: 0 }),
 };
+
+function StepSuccess() {
+    const store = useBookingStore();
+    const navigate = useNavigate();
+
+    const handleWhatsApp = () => {
+        if (!store.barberName) return;
+        const msg = formatWhatsAppMessage('booking', {
+            services: store.services,
+            date: store.date,
+            startTime: (store.time ?? "00:00").split(':').map(Number).reduce((acc: any, val: number, i: number) => {
+                if (i === 0) acc.hour = val;
+                else acc.minute = val;
+                return acc;
+            }, { hour: 0, minute: 0 }),
+            barberName: store.barberName,
+            totalPrice: store.totalPrice(),
+        });
+        openWhatsApp(BUSINESS.phone, msg);
+    };
+
+    return (
+        <div className="text-center py-8">
+            <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="w-20 h-20 bg-success/20 text-success rounded-full flex items-center justify-center mx-auto mb-6"
+            >
+                <Check size={40} />
+            </motion.div>
+            <h2 className="font-heading text-2xl font-bold mb-2 text-text-primary">Agendamento Realizado!</h2>
+            <p className="text-text-secondary mb-8">Seu horário foi reservado com sucesso. Deseja enviar um comprovante para a barbearia?</p>
+            
+            <div className="space-y-3 px-4 max-w-sm mx-auto">
+                <button
+                    onClick={handleWhatsApp}
+                    className="w-full flex items-center justify-center gap-2 bg-success hover:bg-success/90 text-white font-semibold py-3.5 rounded-xl transition shadow-lg shadow-success/20"
+                >
+                    <Phone size={18} />
+                    Enviar para o WhatsApp
+                </button>
+                <button
+                    onClick={() => {
+                        store.reset();
+                        navigate('/meus-agendamentos');
+                    }}
+                    className="w-full py-3.5 rounded-xl border border-border text-text-secondary font-medium hover:bg-white/5 transition"
+                >
+                    Meus Agendamentos
+                </button>
+            </div>
+        </div>
+    );
+}
 
 export function BookingPage() {
     const store = useBookingStore();
@@ -42,6 +97,14 @@ export function BookingPage() {
     const navigate = useNavigate();
     const [direction, setDirection] = useState(1);
     const [loading, setLoading] = useState(false);
+    const { user, isAuthenticated } = useAuthStore();
+
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            if (!store.clientName) store.setClientName(user.name);
+            if (!store.clientPhone && user.phone) store.setClientPhone(user.phone);
+        }
+    }, [isAuthenticated, user, store]);
 
     const canNext = (): boolean => {
         switch (store.step) {
@@ -71,23 +134,27 @@ export function BookingPage() {
     const handleConfirm = async () => {
         setLoading(true);
         try {
+            const user = useAuthStore.getState().user;
+            if (!user?.id) {
+                addToast('error', 'Você precisa estar autenticado para agendar.');
+                navigate('/entrar');
+                return;
+            }
+            
+            const [hour, minute] = (store.time ?? "00:00").split(':').map(Number);
+            
             await createAppointment({
-                clientName: store.clientName,
-                clientPhone: store.clientPhone,
-                notes: store.notes,
-                barberId: store.barberId ?? 'barber-1',
-                barberName: store.barberName ?? 'Sem preferência',
-                services: store.services,
+                clientId: user.id,
+                barberId: store.barberId ?? 1,
+                serviceIds: store.services.map(s => s.id),
                 date: store.date ?? '',
-                time: store.time ?? '',
-                totalDuration: store.totalDuration(),
-                totalPrice: store.totalPrice(),
-                status: 'confirmed',
+                startTime: { hour, minute, second: 0, nano: 0 },
+                observation: store.notes
             });
             addToast('success', TEXT.booking.success);
-            store.reset();
-            navigate('/');
-        } catch {
+            store.setStep(6);
+        } catch (err) {
+            console.error(err);
             addToast('error', 'Erro ao confirmar agendamento. Tente novamente.');
         } finally {
             setLoading(false);
@@ -120,17 +187,18 @@ export function BookingPage() {
                             {store.step === 3 && <StepTime />}
                             {store.step === 4 && <StepInfo />}
                             {store.step === 5 && <StepConfirmation />}
+                            {store.step === 6 && <StepSuccess />}
                         </motion.div>
                     </AnimatePresence>
                 </div>
 
-                {/* Navigation buttons */}
                 <div className="fixed bottom-0 left-0 right-0 bg-bg-primary/95 backdrop-blur-xl border-t border-border p-4 md:static md:bg-transparent md:border-0 md:mt-8 z-30">
                     <div className="max-w-2xl mx-auto flex gap-3">
-                        {store.step > 0 && store.step < 5 && (
+                        {store.step > 0 && store.step < 6 && (
                             <button
                                 onClick={goPrev}
-                                className="flex items-center gap-2 px-5 py-3 rounded-xl border border-border text-text-secondary hover:bg-white/5 transition text-sm font-medium"
+                                disabled={store.step === 6}
+                                className="flex items-center gap-2 px-5 py-3 rounded-xl border border-border text-text-secondary hover:bg-white/5 transition text-sm font-medium disabled:hidden"
                             >
                                 <ChevronLeft size={16} />
                                 {TEXT.booking.prev}
@@ -239,7 +307,11 @@ function StepperHeader({ step }: { step: number }) {
 /* ====================== STEP 1: BARBER ====================== */
 function StepBarber() {
     const { barberId, setBarber } = useBookingStore();
-    const barbers = MOCK_BARBERS;
+    const [barbers, setBarbers] = useState<Barber[]>([]);
+    
+    useEffect(() => {
+        getBarbers().then(setBarbers);
+    }, []);
 
     return (
         <div className="grid gap-4">
@@ -260,7 +332,7 @@ function StepBarber() {
                             <p className="text-sm text-accent">{b.specialty}</p>
                             <div className="flex items-center gap-1 mt-1">
                                 {Array.from({ length: 5 }).map((_, i) => (
-                                    <Star key={i} size={12} className={i < Math.round(b.rating) ? 'text-accent fill-accent' : 'text-text-disabled'} />
+                                    <Star key={i} size={12} className={i < Math.round(b.rating ?? 0) ? 'text-accent fill-accent' : 'text-text-disabled'} />
                                 ))}
                                 <span className="text-xs text-text-secondary ml-1 font-mono">{b.rating}</span>
                             </div>
@@ -280,8 +352,8 @@ function StepBarber() {
 
             {/* No preference */}
             <button
-                onClick={() => setBarber('no-preference', TEXT.booking.noPreference)}
-                className={`relative flex items-center gap-4 p-5 rounded-2xl border-2 transition-all text-left ${barberId === 'no-preference' ? 'border-accent bg-accent/5' : 'border-border bg-bg-card hover:border-accent/30'
+                onClick={() => setBarber(-1, TEXT.booking.noPreference)}
+                className={`relative flex items-center gap-4 p-5 rounded-2xl border-2 transition-all text-left ${barberId === -1 ? 'border-accent bg-accent/5' : 'border-border bg-bg-card hover:border-accent/30'
                     }`}
             >
                 <div className="w-14 h-14 rounded-full bg-bg-input flex items-center justify-center text-text-secondary flex-shrink-0">
@@ -291,7 +363,7 @@ function StepBarber() {
                     <h3 className="font-semibold">{TEXT.booking.noPreference}</h3>
                     <p className="text-sm text-text-secondary">Deixe-nos escolher o melhor profissional disponível</p>
                 </div>
-                {barberId === 'no-preference' && (
+                {barberId === -1 && (
                     <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-7 h-7 rounded-full bg-accent flex items-center justify-center">
                         <Check size={14} className="text-bg-primary" />
                     </motion.div>
@@ -303,8 +375,12 @@ function StepBarber() {
 
 /* ====================== STEP 2: SERVICES ====================== */
 function StepServices() {
-    const { services: selectedServices, toggleService, totalDuration, totalPrice } = useBookingStore();
-    const allServices = MOCK_SERVICES.filter((s) => s.active);
+    const { services: selectedServices, toggleService, totalDuration, totalPrice, barberId } = useBookingStore();
+    const [allServices, setAllServices] = useState<Service[]>([]);
+
+    useEffect(() => {
+        getServices(barberId === -1 ? undefined : barberId || undefined).then(setAllServices);
+    }, [barberId]);
 
     const formatPrice = (price: number) => price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -322,11 +398,11 @@ function StepServices() {
                         >
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${selected ? 'bg-accent/20 text-accent' : 'bg-bg-input text-text-secondary'
                                 }`}>
-                                {SERVICE_ICONS[s.icon] ?? <Scissors size={20} />}
+                                {SERVICE_ICONS[s.icon || 'scissors'] ?? <Scissors size={20} />}
                             </div>
                             <div className="flex-1 min-w-0">
                                 <h3 className="font-medium text-sm">{s.name}</h3>
-                                <span className="text-xs text-text-secondary"><Clock size={10} className="inline mr-1" />{s.duration}min</span>
+                                <span className="text-xs text-text-secondary"><Clock size={10} className="inline mr-1" />{s.durationMinutes}min</span>
                             </div>
                             <span className="font-mono font-semibold text-sm text-accent">{formatPrice(s.price)}</span>
                             <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition ${selected ? 'bg-accent border-accent' : 'border-border'
@@ -366,9 +442,20 @@ function StepServices() {
 
 /* ====================== STEP 3: DATE ====================== */
 function StepDate() {
-    const { date, setDate } = useBookingStore();
+    const { barberId, date, setDate } = useBookingStore();
     const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [daysOff, setDaysOff] = useState<string[]>([]);
     const today = startOfDay(new Date());
+
+    useEffect(() => {
+        if (!barberId || barberId === -1) return;
+        const actualBarberId = barberId;
+        // Fetch unavailable dates from api
+        // Since getBarberDateOff is used in getTimeSlots indirectly, we can also fetch it here for the calendar
+        apiClient.get<string[]>(`/clients/barbers/${actualBarberId}/date-off`)
+            .then(res => setDaysOff(res.data))
+            .catch(() => {});
+    }, [barberId]);
 
     const daysInMonth = eachDayOfInterval({
         start: startOfMonth(currentMonth),
@@ -379,9 +466,9 @@ function StepDate() {
 
     const isUnavailable = (d: Date) => {
         if (isBefore(d, today)) return true;
-        if (getDay(d) === 0) return true; // Sundays
-        // Mock: first Monday of month as day off
-        if (getDay(d) === 1 && d.getDate() <= 7) return true;
+        const dateStr = formatDateStr(d);
+        if (daysOff.includes(dateStr)) return true;
+        if (getDay(d) === 0) return true; // Sundays as fallback
         return false;
     };
 
@@ -462,19 +549,20 @@ function StepDate() {
 
 /* ====================== STEP 4: TIME ====================== */
 function StepTime() {
-    const { barberId, date, time, setTime } = useBookingStore();
+    const { barberId, date, time, setTime, services } = useBookingStore();
     const [slots, setSlots] = useState<TimeSlot[]>([]);
     const [loadingSlots, setLoadingSlots] = useState(true);
 
     useEffect(() => {
-        if (!date || !barberId) return;
+        if (!date || !barberId || services.length === 0) return;
         setLoadingSlots(true);
-        const actualBarberId = barberId === 'no-preference' ? 'barber-1' : barberId;
-        getTimeSlots(actualBarberId, date).then((s) => {
+        const actualBarberId = barberId === -1 ? 1 : barberId;
+        const serviceIds = services.map(s => s.id);
+        getTimeSlots(actualBarberId, date, serviceIds).then((s) => {
             setSlots(s);
             setLoadingSlots(false);
         });
-    }, [barberId, date]);
+    }, [barberId, date, services]);
 
     const getPeriod = (t: string) => {
         const h = parseInt(t.split(':')[0], 10);

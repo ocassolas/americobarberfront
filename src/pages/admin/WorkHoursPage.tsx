@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Clock, Save, Plus, X, Calendar } from 'lucide-react';
-import { getSchedules, saveSchedule } from '@/services/api';
+import type { WorkSchedule, DayOff, UserResponse } from '@/types';
+import { updateSlotInterval, getBarbers, getSchedules, saveSchedule } from '@/services/api';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { useToastStore } from '@/stores/useToastStore';
-import type { WorkSchedule, DayOff } from '@/types';
 
 const DAY_NAMES = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
@@ -11,11 +12,21 @@ export function WorkHoursPage() {
     const [schedules, setSchedules] = useState<WorkSchedule[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [newDayOff, setNewDayOff] = useState<{ barberId: string; date: string; reason: string } | null>(null);
+    const [newDayOff, setNewDayOff] = useState<{ barberId: number; date: string; reason: string } | null>(null);
+    const [slotInterval, setSlotInterval] = useState(30);
     const addToast = useToastStore((s) => s.addToast);
 
     useEffect(() => {
         getSchedules().then((data) => { setSchedules(data); setLoading(false); });
+        
+        // Fetch current slot interval
+        const userId = useAuthStore.getState().user?.id;
+        if (userId) {
+            getBarbers().then(barbers => {
+                const me = barbers.find(b => b.id === userId);
+                if (me) setSlotInterval(me.slotIntervalMinutes);
+            });
+        }
     }, []);
 
     const handleToggleDay = (barberIdx: number, dayOfWeek: number) => {
@@ -44,12 +55,18 @@ export function WorkHoursPage() {
 
     const handleSave = async (schedule: WorkSchedule) => {
         setSaving(true);
-        await saveSchedule(schedule);
-        addToast('success', `Horários de ${schedule.barberName} salvos!`);
-        setSaving(false);
+        try {
+            await saveSchedule(schedule);
+            await updateSlotInterval(slotInterval);
+            addToast('success', `Configurações de ${schedule.barberName} salvas!`);
+        } catch (err) {
+            addToast('error', 'Erro ao salvar configurações.');
+        } finally {
+            setSaving(false);
+        }
     };
 
-    const handleAddDayOff = (barberId: string) => {
+    const handleAddDayOff = (barberId: number) => {
         setNewDayOff({ barberId, date: '', reason: '' });
     };
 
@@ -68,7 +85,7 @@ export function WorkHoursPage() {
         addToast('success', 'Folga adicionada!');
     };
 
-    const removeDayOff = (barberId: string, offId: string) => {
+    const removeDayOff = (barberId: number, offId: string | number) => {
         setSchedules((prev) =>
             prev.map((s) => {
                 if (s.barberId !== barberId) return s;
@@ -94,9 +111,39 @@ export function WorkHoursPage() {
                             disabled={saving}
                             className="flex items-center gap-2 bg-accent hover:bg-accent-hover text-bg-primary font-semibold px-4 py-2 rounded-xl transition text-sm"
                         >
-                            <Save size={14} />
-                            Salvar
+                            {saving ? (
+                                <div className="w-4 h-4 border-2 border-bg-primary/30 border-t-bg-primary rounded-full animate-spin" />
+                            ) : (
+                                <>
+                                    <Save size={14} />
+                                    Salvar
+                                </>
+                            )}
                         </button>
+                    </div>
+
+                    {/* Slot Interval */}
+                    <div className="mb-6 pb-6 border-b border-border">
+                        <label className="flex items-center gap-2 text-sm font-medium mb-3">
+                            <Clock size={16} className="text-accent" />
+                            Intervalo de Agendamento
+                            <span className="text-xs text-text-disabled font-normal">(Tempo entre um horário e outro)</span>
+                        </label>
+                        <div className="grid grid-cols-4 gap-2">
+                            {[15, 30, 45, 60].map((mins) => (
+                                <button
+                                    key={mins}
+                                    onClick={() => setSlotInterval(mins)}
+                                    className={`py-2 rounded-xl text-xs font-medium border-2 transition-all ${
+                                        slotInterval === mins 
+                                            ? 'border-accent bg-accent/10 text-accent font-bold' 
+                                            : 'border-border hover:border-accent/30'
+                                    }`}
+                                >
+                                    {mins} min
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     {/* Work days */}

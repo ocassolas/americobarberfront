@@ -1,0 +1,70 @@
+﻿
+> americobarberfront@0.0.0 build
+> tsc -b && vite build
+
+src/mocks/appointments.ts(10,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(14,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(21,9): error TS2322: Type '"confirmed"' is not assignable to type '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"'.
+src/mocks/appointments.ts(25,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(29,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(36,9): error TS2322: Type '"confirmed"' is not assignable to type '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"'.
+src/mocks/appointments.ts(40,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(44,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(51,9): error TS2322: Type '"confirmed"' is not assignable to type '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"'.
+src/mocks/appointments.ts(55,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(59,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(66,9): error TS2322: Type '"confirmed"' is not assignable to type '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"'.
+src/mocks/appointments.ts(70,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(74,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(81,9): error TS2322: Type '"completed"' is not assignable to type '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"'.
+src/mocks/appointments.ts(85,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(89,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(96,9): error TS2322: Type '"completed"' is not assignable to type '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"'.
+src/mocks/appointments.ts(100,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(104,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(111,9): error TS2322: Type '"cancelled"' is not assignable to type '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"'.
+src/mocks/barbers.ts(5,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/barbers.ts(13,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/schedules.ts(5,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/schedules.ts(17,28): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/schedules.ts(21,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/schedules.ts(33,28): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/services.ts(5,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/services.ts(14,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/services.ts(23,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/services.ts(32,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/services.ts(41,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/services.ts(50,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/pages/admin/DashboardPage.tsx(23,81): error TS2367: This comparison appears to be unintentional because the types '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"' and '"cancelled"' have no overlap.
+src/pages/admin/DashboardPage.tsx(24,71): error TS2339: Property 'totalPrice' does not exist on type 'Appointment'.
+src/pages/admin/DashboardPage.tsx(26,26): error TS2339: Property 'time' does not exist on type 'Appointment'.
+src/pages/admin/DashboardPage.tsx(27,27): error TS2339: Property 'time' does not exist on type 'Appointment'.
+src/pages/admin/DashboardPage.tsx(27,48): error TS2339: Property 'time' does not exist on type 'Appointment'.
+src/pages/admin/DashboardPage.tsx(34,97): error TS2367: This comparison appears to be unintentional because the types '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"' and '"completed"' have no overlap.
+src/pages/admin/DashboardPage.tsx(35,62): error TS2339: Property 'time' does not exist on type 'Appointment'.
+src/pages/admin/DashboardPage.tsx(92,47): error TS2339: Property 'time' does not exist on type 'Appointment'.
+src/pages/admin/DashboardPage.tsx(92,68): error TS2339: Property 'time' does not exist on type 'Appointment'.
+src/pages/admin/DashboardPage.tsx(98,109): error TS2339: Property 'time' does not exist on type 'Appointment'.
+src/pages/admin/DashboardPage.tsx(102,50): error TS2551: Property 'services' does not exist on type 'Appointment'. Did you mean 'serviceId'?
+src/pages/admin/DashboardPage.tsx(102,64): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/pages/admin/DashboardPage.tsx(106,102): error TS2339: Property 'totalPrice' does not exist on type 'Appointment'.
+src/pages/admin/HistoryPage.tsx(22,39): error TS2367: This comparison appears to be unintentional because the types 'number' and 'string' have no overlap.
+src/pages/admin/HistoryPage.tsx(27,49): error TS2367: This comparison appears to be unintentional because the types '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"' and '"cancelled"' have no overlap.
+src/pages/admin/HistoryPage.tsx(27,102): error TS2339: Property 'totalPrice' does not exist on type 'Appointment'.
+src/pages/admin/HistoryPage.tsx(35,74): error TS2367: This comparison appears to be unintentional because the types '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"' and '"cancelled"' have no overlap.
+src/pages/admin/HistoryPage.tsx(39,57): error TS2339: Property 'totalPrice' does not exist on type 'Appointment'.
+src/pages/admin/HistoryPage.tsx(95,101): error TS2367: This comparison appears to be unintentional because the types '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"' and '"completed"' have no overlap.
+src/pages/admin/HistoryPage.tsx(99,99): error TS2367: This comparison appears to be unintentional because the types '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"' and '"cancelled"' have no overlap.
+src/pages/admin/HistoryPage.tsx(161,86): error TS2339: Property 'time' does not exist on type 'Appointment'.
+src/pages/admin/HistoryPage.tsx(164,110): error TS2339: Property 'totalPrice' does not exist on type 'Appointment'.
+src/pages/admin/HistoryPage.tsx(166,108): error TS7053: Element implicitly has an 'any' type because expression of type '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"' can't be used to index type '{ readonly confirmed: { readonly label: "Confirmado"; readonly color: "bg-success/15 text-success"; }; readonly completed: { readonly label: "Conclu├¡do"; readonly color: "bg-info/15 text-info"; }; readonly cancelled: { ...; }; }'.
+  Property 'AGENDADO' does not exist on type '{ readonly confirmed: { readonly label: "Confirmado"; readonly color: "bg-success/15 text-success"; }; readonly completed: { readonly label: "Conclu├¡do"; readonly color: "bg-info/15 text-info"; }; readonly cancelled: { ...; }; }'.
+src/pages/admin/HistoryPage.tsx(167,46): error TS7053: Element implicitly has an 'any' type because expression of type '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"' can't be used to index type '{ readonly confirmed: { readonly label: "Confirmado"; readonly color: "bg-success/15 text-success"; }; readonly completed: { readonly label: "Conclu├¡do"; readonly color: "bg-info/15 text-info"; }; readonly cancelled: { ...; }; }'.
+  Property 'AGENDADO' does not exist on type '{ readonly confirmed: { readonly label: "Confirmado"; readonly color: "bg-success/15 text-success"; }; readonly completed: { readonly label: "Conclu├¡do"; readonly color: "bg-info/15 text-info"; }; readonly cancelled: { ...; }; }'.
+src/pages/client/BookingPage.tsx(269,87): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/pages/client/LandingPage.tsx(214,75): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/pages/client/LandingPage.tsx(234,52): error TS2538: Type 'undefined' cannot be used as an index type.
+src/pages/client/LandingPage.tsx(241,50): error TS2339: Property 'duration' does not exist on type 'Service'.
+src/stores/useBookingStore.ts(49,68): error TS2339: Property 'duration' does not exist on type 'Service'.

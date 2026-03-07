@@ -1,13 +1,14 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import {
     MapPin, Phone, Clock, Star, Scissors, PenTool, Sparkles,
     Eye, Palette, Droplets, ChevronRight, Calendar, Instagram, MessageCircle,
-    ArrowRight,
+    ArrowRight, LogIn, User as UserIcon
 } from 'lucide-react';
-import { MOCK_BARBERS } from '@/mocks/barbers';
-import { MOCK_SERVICES } from '@/mocks/services';
+import { getBarbers, getServices } from '@/services/api';
+import type { Barber, Service } from '@/types';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { BUSINESS, TEXT } from '@/config/constants';
 
 const SERVICE_ICONS: Record<string, React.ReactNode> = {
@@ -74,12 +75,22 @@ function SectionTitle({ subtitle, title }: { subtitle: string; title: string }) 
 
 export function LandingPage() {
     const heroRef = useRef(null);
+    const [barbers, setBarbers] = useState<Barber[]>([]);
+    const [services, setServices] = useState<Service[]>([]);
+
+    useEffect(() => {
+        getBarbers().then(setBarbers).catch(console.error);
+        getServices().then(setServices).catch(console.error);
+    }, []);
+
     const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
     const heroY = useTransform(scrollYProgress, [0, 1], [0, 150]);
     const heroOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
 
     const formatPrice = (price: number) =>
         price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    const { isAuthenticated } = useAuthStore();
 
     return (
         <div className="landing-page">
@@ -146,11 +157,25 @@ export function LandingPage() {
                         transition={{ duration: 0.8, delay: 0.9 }}
                         className="landing-hero-cta-wrapper"
                     >
-                        <Link to="/agendar" className="landing-cta-button">
-                            <Calendar size={20} />
-                            <span>{TEXT.hero.cta}</span>
-                            <ArrowRight size={18} className="landing-cta-arrow" />
-                        </Link>
+                        {isAuthenticated ? (
+                            <Link to="/agendar" className="landing-cta-button">
+                                <Calendar size={20} />
+                                <span>{TEXT.hero.cta}</span>
+                                <ArrowRight size={18} className="landing-cta-arrow" />
+                            </Link>
+                        ) : (
+                            <div className="flex flex-col sm:flex-row items-center gap-4">
+                                <Link to="/entrar" className="landing-cta-button w-full sm:w-auto">
+                                    <LogIn size={20} />
+                                    <span>Entrar</span>
+                                    <ArrowRight size={18} className="landing-cta-arrow" />
+                                </Link>
+                                <Link to="/cadastrar" className="landing-cta-button landing-cta-secondary w-full sm:w-auto">
+                                    <UserIcon size={20} />
+                                    <span>Criar Conta</span>
+                                </Link>
+                            </div>
+                        )}
                     </motion.div>
 
                     {/* Social proof */}
@@ -194,7 +219,7 @@ export function LandingPage() {
                 <div className="max-w-6xl mx-auto px-4">
                     <SectionTitle subtitle="Nossa Equipe" title="Nossos Barbeiros" />
                     <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                        {MOCK_BARBERS.map((barber) => (
+                        {barbers.map((barber) => (
                             <motion.div key={barber.id} variants={staggerChild} className="landing-barber-card group">
                                 <div className="landing-barber-avatar-wrapper">
                                     <div className="landing-barber-avatar">
@@ -211,7 +236,7 @@ export function LandingPage() {
                                             <Star
                                                 key={i}
                                                 size={14}
-                                                className={i < Math.round(barber.rating) ? 'text-accent fill-accent' : 'text-text-disabled'}
+                                                className={i < Math.round(barber.rating ?? 0) ? 'text-accent fill-accent' : 'text-text-disabled'}
                                             />
                                         ))}
                                         <span className="font-mono text-sm text-text-secondary ml-1.5">{barber.rating}</span>
@@ -228,17 +253,17 @@ export function LandingPage() {
                 <div className="max-w-6xl mx-auto px-4">
                     <SectionTitle subtitle="O Que Oferecemos" title="Nossos Serviços" />
                     <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                        {MOCK_SERVICES.map((service) => (
+                        {services.map((service) => (
                             <motion.div key={service.id} variants={staggerChild} className="landing-service-card group">
                                 <div className="landing-service-icon">
-                                    {SERVICE_ICONS[service.icon] ?? <Scissors size={22} />}
+                                    {service.icon ? SERVICE_ICONS[service.icon as keyof typeof SERVICE_ICONS] ?? <Scissors size={22} /> : <Scissors size={22} />}
                                 </div>
                                 <h3 className="landing-service-name">{service.name}</h3>
                                 <p className="landing-service-desc">{service.description}</p>
                                 <div className="landing-service-footer">
                                     <span className="landing-service-duration">
                                         <Clock size={13} />
-                                        {service.duration}min
+                                        {service.durationMinutes}min
                                     </span>
                                     <span className="landing-service-price">{formatPrice(service.price)}</span>
                                 </div>
@@ -311,11 +336,25 @@ export function LandingPage() {
                         Agende agora e viva a experiência Américo Barber Club.
                     </p>
                     <div className="landing-final-buttons">
-                        <Link to="/agendar" className="landing-cta-button">
-                            <Calendar size={20} />
-                            <span>{TEXT.hero.cta}</span>
-                            <ArrowRight size={18} className="landing-cta-arrow" />
-                        </Link>
+                        {isAuthenticated ? (
+                            <Link to="/agendar" className="landing-cta-button">
+                                <Calendar size={20} />
+                                <span>{TEXT.hero.cta}</span>
+                                <ArrowRight size={18} className="landing-cta-arrow" />
+                            </Link>
+                        ) : (
+                            <div className="flex flex-col sm:flex-row items-center gap-4">
+                                <Link to="/entrar" className="landing-cta-button w-full sm:w-auto">
+                                    <LogIn size={20} />
+                                    <span>Entrar Agora</span>
+                                    <ArrowRight size={18} className="landing-cta-arrow" />
+                                </Link>
+                                <Link to="/cadastrar" className="landing-cta-button landing-cta-secondary w-full sm:w-auto">
+                                    <UserIcon size={20} />
+                                    <span>Criar Conta</span>
+                                </Link>
+                            </div>
+                        )}
                         <div className="landing-final-social">
                             <a
                                 href={BUSINESS.instagram}

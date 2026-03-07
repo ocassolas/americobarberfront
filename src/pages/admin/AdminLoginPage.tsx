@@ -4,7 +4,9 @@ import { Lock, User, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useToastStore } from '@/stores/useToastStore';
-import { ADMIN_CREDENTIALS, BUSINESS, TEXT } from '@/config/constants';
+import { TEXT } from '@/config/constants';
+import { apiClient } from '@/services/apiClient';
+import type { LoginResponse } from '@/types';
 
 export function AdminLoginPage() {
     const [username, setUsername] = useState('');
@@ -21,16 +23,29 @@ export function AdminLoginPage() {
         setLoading(true);
         setError('');
 
-        await new Promise((r) => setTimeout(r, 600));
+        try {
+            const response = await apiClient.post<LoginResponse>('/auth/login', {
+                email: username, // Assuming username input acts as email based on API doc
+                password,
+            });
 
-        if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-            login();
-            addToast('success', 'Login realizado com sucesso!');
-            navigate('/admin/dashboard');
-        } else {
-            setError(TEXT.admin.invalidCredentials);
+            if (response.data.role === 'ROLE_ADMIN') {
+                login(response.data);
+                addToast('success', 'Login realizado com sucesso!');
+                navigate('/admin/dashboard');
+            } else {
+                setError('Acesso restrito apenas para administradores.');
+            }
+        } catch (err: any) {
+            console.error(err);
+            if (err.response?.status === 401) {
+                setError(TEXT.admin.invalidCredentials);
+            } else {
+                setError('Erro ao conectar com o servidor. Tente novamente mais tarde.');
+            }
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     return (
@@ -52,10 +67,10 @@ export function AdminLoginPage() {
                     <div>
                         <label className="flex items-center gap-2 text-sm font-medium mb-2">
                             <User size={16} className="text-accent" />
-                            {TEXT.admin.username}
+                            Email
                         </label>
                         <input
-                            type="text"
+                            type="email"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             className="w-full bg-bg-input input-surface border border-border rounded-xl px-4 py-3 text-sm focus:border-accent focus:ring-1 focus:ring-accent/30 transition outline-none"

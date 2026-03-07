@@ -10,7 +10,7 @@ export function ServicesPage() {
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState<Service | null>(null);
     const [isNew, setIsNew] = useState(false);
-    const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [deleteId, setDeleteId] = useState<number | null>(null);
     const addToast = useToastStore((s) => s.addToast);
 
     useEffect(() => {
@@ -41,14 +41,17 @@ export function ServicesPage() {
 
     const openNew = () => {
         setIsNew(true);
+        // We get the currently logged in generic ID if admin/barber or leave empty (backend handles barberId if it is a barber context)
+        // Set id as 0 temporarily so the backend knows to create a POST instead of PUT.
         setEditing({
-            id: `service-${Date.now()}`,
+            id: 0,
             name: '',
-            duration: 30,
+            durationMinutes: 30,
             price: 0,
             icon: 'scissors',
             description: '',
             active: true,
+            barberId: 0, // This needs to be set properly depending on the admin assigned barber ID
         });
     };
 
@@ -86,7 +89,7 @@ export function ServicesPage() {
                         <div className="flex-1 min-w-0">
                             <h3 className="font-medium text-sm">{service.name}</h3>
                             <p className="text-xs text-text-secondary">
-                                <Clock size={10} className="inline mr-1" />{service.duration}min
+                                <Clock size={10} className="inline mr-1" />{service.durationMinutes}min
                             </p>
                         </div>
                         <span className="font-mono font-semibold text-accent text-sm">{formatPrice(service.price)}</span>
@@ -150,8 +153,8 @@ export function ServicesPage() {
                                         <label className="text-xs font-medium mb-1 block">Duração (min)</label>
                                         <input
                                             type="number"
-                                            value={editing.duration}
-                                            onChange={(e) => setEditing({ ...editing, duration: parseInt(e.target.value, 10) || 0 })}
+                                            value={editing.durationMinutes}
+                                            onChange={(e) => setEditing({ ...editing, durationMinutes: parseInt(e.target.value, 10) || 0 })}
                                             className="w-full bg-bg-input input-surface border border-border rounded-xl px-3 py-2.5 text-sm font-mono focus:border-accent outline-none transition"
                                         />
                                     </div>

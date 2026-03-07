@@ -1,122 +1,184 @@
-import { MOCK_BARBERS } from '@/mocks/barbers';
-import { MOCK_SERVICES } from '@/mocks/services';
-import { MOCK_APPOINTMENTS } from '@/mocks/appointments';
-import { MOCK_SCHEDULES } from '@/mocks/schedules';
-import type { Appointment, Barber, Service, TimeSlot, WorkSchedule } from '@/types';
+import { apiClient } from './apiClient';
+import type { Appointment, AppointmentRequest, Barber, Service, TimeSlot, WorkSchedule, AvailabilityResponse, DayOff, LocalTime } from '@/types';
+import { useAuthStore } from '@/stores/useAuthStore';
 
-const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+// Role-based helper
+const isAdmin = () => {
+    const user = useAuthStore.getState().user;
+    return user?.role === 'ROLE_ADMIN';
+};
 
+const isBarber = () => {
+    const user = useAuthStore.getState().user;
+    return user?.isBarber === true;
+};
+
+// ================= BARBERS =================
 export async function getBarbers(): Promise<Barber[]> {
-    await delay(300);
-    return MOCK_BARBERS;
-}
-
-export async function getServices(): Promise<Service[]> {
-    await delay(300);
-    return MOCK_SERVICES.filter((s) => s.active);
-}
-
-export async function getAppointments(): Promise<Appointment[]> {
-    await delay(400);
-    return MOCK_APPOINTMENTS;
-}
-
-export async function getAppointmentsByPhone(phone: string): Promise<Appointment[]> {
-    await delay(500);
-    return MOCK_APPOINTMENTS.filter((a) => a.clientPhone === phone);
-}
-
-export async function createAppointment(data: Omit<Appointment, 'id' | 'createdAt'>): Promise<Appointment> {
-    await delay(600);
-    const appointment: Appointment = {
-        ...data,
-        id: `apt-${Date.now()}`,
-        createdAt: new Date().toISOString(),
-    };
-    MOCK_APPOINTMENTS.push(appointment);
-    return appointment;
-}
-
-export async function cancelAppointment(id: string): Promise<void> {
-    await delay(400);
-    const apt = MOCK_APPOINTMENTS.find((a) => a.id === id);
-    if (apt) apt.status = 'cancelled';
-}
-
-export async function getSchedules(): Promise<WorkSchedule[]> {
-    await delay(300);
-    return MOCK_SCHEDULES;
-}
-
-export async function getTimeSlots(barberId: string, date: string): Promise<TimeSlot[]> {
-    await delay(400);
-    const slots: TimeSlot[] = [];
-    const schedule = MOCK_SCHEDULES.find((s) => s.barberId === barberId) ?? MOCK_SCHEDULES[0];
-    const dayDate = new Date(date + 'T12:00:00');
-    const dayOfWeek = dayDate.getDay();
-    const workDay = schedule.workDays.find((w) => w.dayOfWeek === dayOfWeek);
-
-    if (!workDay || !workDay.enabled) return [];
-
-    const isDayOff = schedule.daysOff.some((d) => d.date === date);
-    if (isDayOff) return [];
-
-    const [openH, openM] = workDay.openTime.split(':').map(Number);
-    const [closeH, closeM] = workDay.closeTime.split(':').map(Number);
-    const openMinutes = openH * 60 + openM;
-    const closeMinutes = closeH * 60 + closeM;
-
-    const now = new Date();
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    const isToday = date === todayStr;
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-    const bookedTimes = MOCK_APPOINTMENTS
-        .filter((a) => a.barberId === barberId && a.date === date && a.status !== 'cancelled')
-        .map((a) => a.time);
-
-    const seed = date.split('-').reduce((a, b) => a + parseInt(b, 10), 0) + barberId.charCodeAt(barberId.length - 1);
-
-    for (let m = openMinutes; m < closeMinutes; m += 30) {
-        const h = Math.floor(m / 60);
-        const min = m % 60;
-        const timeStr = `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
-
-        if (isToday && m <= currentMinutes) continue;
-
-        const isBooked = bookedTimes.includes(timeStr);
-        const pseudoRandom = ((seed * (m + 1) * 17) % 100);
-        const isRandomlyOccupied = pseudoRandom < 30;
-
-        slots.push({
-            time: timeStr,
-            available: !isBooked && !isRandomlyOccupied,
-        });
+    if (isAdmin()) {
+        const res = await apiClient.get<Barber[]>('/admin/barbers');
+        return res.data;
+    } else {
+        const res = await apiClient.get<Barber[]>('/clients/barbers');
+        return res.data;
     }
+}
 
-    return slots;
+// ================= SERVICES =================
+export async function getServices(barberId?: number): Promise<Service[]> {
+    if (isAdmin() && !isBarber()) {
+        const res = await apiClient.get<Service[]>('/admin/services');
+        return res.data;
+    } else if (isBarber()) {
+        const res = await apiClient.get<Service[]>('/barbers/services');
+        return res.data;
+    } else {
+        if (!barberId) return [];
+        const res = await apiClient.get<Service[]>(`/clients/barbers/${barberId}/services`);
+        return res.data;
+    }
 }
 
 export async function saveService(service: Service): Promise<Service> {
-    await delay(400);
-    const idx = MOCK_SERVICES.findIndex((s) => s.id === service.id);
-    if (idx >= 0) {
-        MOCK_SERVICES[idx] = service;
+    if (service.id) {
+        // Update handling depending on context (admin vs barber)
+        const endpoint = isBarber() && !isAdmin() ? `/barbers/services/${service.id}` : `/admin/services/${service.id}`;
+        const res = await apiClient.put<Service>(endpoint, service);
+        return res.data;
     } else {
-        MOCK_SERVICES.push(service);
+        const res = await apiClient.post<Service>('/admin/services', service);
+        return res.data;
     }
-    return service;
 }
 
-export async function deleteService(id: string): Promise<void> {
-    await delay(300);
-    const idx = MOCK_SERVICES.findIndex((s) => s.id === id);
-    if (idx >= 0) MOCK_SERVICES.splice(idx, 1);
+export async function deleteService(id: number): Promise<void> {
+    // API doesn't specify DELETE /services, assuming setting active=false via PUT
+    const services = await getServices();
+    const service = services.find(s => s.id === id);
+    if (service) {
+        service.active = false;
+        await saveService(service);
+    }
+}
+
+// ================= APPOINTMENTS =================
+export async function getAppointments(): Promise<Appointment[]> {
+    if (isBarber()) {
+        const res = await apiClient.get<Appointment[]>('/barbers/appointments');
+        return res.data;
+    } else if (isAdmin()) {
+        const res = await apiClient.get<Appointment[]>('/admin/appointments');
+        return res.data;
+    }
+    const res = await apiClient.get<Appointment[]>('/clients/appointments');
+    return res.data;
+}
+
+export async function getAppointmentsByPhone(phone: string): Promise<Appointment[]> {
+    // Backend API handles this via /clients/appointments tied to the JWT
+    // So we just return the logged client's appointments (or empty if not logged in)
+    try {
+        const res = await apiClient.get<Appointment[]>('/clients/appointments');
+        return res.data;
+    } catch {
+        return [];
+    }
+}
+
+export async function createAppointment(data: AppointmentRequest): Promise<Appointment> {
+    const res = await apiClient.post<Appointment>('/clients/appointments', data);
+    return res.data;
+}
+
+export async function cancelAppointment(id: number, observation?: string): Promise<void> {
+    if (isBarber()) {
+        await apiClient.put(`/barbers/appointments/${id}/cancel`, { observation: observation || 'Cancelado pelo barbeiro' });
+    } else {
+        await apiClient.delete(`/clients/appointments/${id}`, { data: { observation: observation || 'Cancelado pelo cliente' } });
+    }
+}
+
+// ================= SCHEDULES & AVAILABILITY =================
+export async function getSchedules(): Promise<WorkSchedule[]> {
+    // Mock assembling schedule from API since API separates availability and days off
+    if (!isBarber()) return [];
+
+    const availRes = await apiClient.get<AvailabilityResponse[]>('/barbers/availability');
+    const daysOffRes = await apiClient.get<string[]>('/barbers/date-off');
+
+    const user = useAuthStore.getState().user;
+
+    const workDays = [0, 1, 2, 3, 4, 5, 6].map(day => {
+        const slot = availRes.data.find(a => a.dayOfWeek === day);
+        if (slot) {
+            return {
+                dayOfWeek: day,
+                enabled: true,
+                openTime: `${String(slot.startTime.hour).padStart(2, '0')}:${String(slot.startTime.minute).padStart(2, '0')}`,
+                closeTime: `${String(slot.endTime.hour).padStart(2, '0')}:${String(slot.endTime.minute).padStart(2, '0')}`
+            };
+        }
+        return { dayOfWeek: day, enabled: false, openTime: '08:00', closeTime: '20:00' };
+    });
+
+    const daysOff: DayOff[] = daysOffRes.data.map((date, idx) => ({
+        id: `off-${idx}`,
+        barberId: user!.id,
+        date: date,
+        reason: 'Folga'
+    }));
+
+    return [{
+        barberId: user!.id,
+        barberName: user!.name,
+        workDays,
+        daysOff
+    }];
+}
+
+export async function getTimeSlots(barberId: number, date: string, serviceIds: number[]): Promise<TimeSlot[]> {
+    try {
+        const res = await apiClient.get<LocalTime[]>(`/clients/barbers/${barberId}/available-times`, {
+            params: { 
+                date,
+                serviceIds: serviceIds.join(',')
+            }
+        });
+        
+        return res.data.map(lt => ({
+            time: `${String(lt.hour).padStart(2, '0')}:${String(lt.minute).padStart(2, '0')}`,
+            available: true
+        }));
+    } catch (error) {
+        console.error('Error fetching available times:', error);
+        return [];
+    }
+}
+
+export async function updateSlotInterval(interval: number): Promise<void> {
+    await apiClient.put('/barbers/profile/slot-interval', { slotIntervalMinutes: interval });
 }
 
 export async function saveSchedule(schedule: WorkSchedule): Promise<WorkSchedule> {
-    await delay(400);
-    const idx = MOCK_SCHEDULES.findIndex((s) => s.barberId === schedule.barberId);
-    if (idx >= 0) MOCK_SCHEDULES[idx] = schedule;
+    // API separated into /availability and /date-off
+    const availabilityPayload = schedule.workDays
+        .filter(wd => wd.enabled)
+        .map(wd => {
+            const [oH, oM] = wd.openTime.split(':').map(Number);
+            const [cH, cM] = wd.closeTime.split(':').map(Number);
+            return {
+                dayOfWeek: wd.dayOfWeek,
+                startTime: { hour: oH, minute: oM, second: 0, nano: 0 },
+                endTime: { hour: cH, minute: cM, second: 0, nano: 0 }
+            };
+        });
+
+    await apiClient.put('/barbers/availability', availabilityPayload);
+
+    const datesOffPayload = {
+        datesOff: schedule.daysOff.map(d => d.date)
+    };
+    await apiClient.put('/barbers/date-off', datesOffPayload);
+
     return schedule;
 }

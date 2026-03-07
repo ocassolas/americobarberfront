@@ -1,0 +1,31 @@
+﻿
+> americobarberfront@0.0.0 build
+> tsc -b && vite build
+
+src/mocks/appointments.ts(10,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(14,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(21,9): error TS2322: Type '"confirmed"' is not assignable to type '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"'.
+src/mocks/appointments.ts(25,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(29,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(36,9): error TS2322: Type '"confirmed"' is not assignable to type '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"'.
+src/mocks/appointments.ts(40,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(44,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(51,9): error TS2322: Type '"confirmed"' is not assignable to type '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"'.
+src/mocks/appointments.ts(55,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(59,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(66,9): error TS2322: Type '"confirmed"' is not assignable to type '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"'.
+src/mocks/appointments.ts(70,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(74,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(81,9): error TS2322: Type '"completed"' is not assignable to type '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"'.
+src/mocks/appointments.ts(85,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(89,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(96,9): error TS2322: Type '"completed"' is not assignable to type '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"'.
+src/mocks/appointments.ts(100,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(104,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/appointments.ts(111,9): error TS2322: Type '"cancelled"' is not assignable to type '"AGENDADO" | "CANCELADO_POR_CLIENTE" | "CANCELADO_POR_BARBEIRO" | "CONCLUIDO" | "PROPOSTA_REAGENDAMENTO"'.
+src/mocks/schedules.ts(5,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/schedules.ts(17,28): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/schedules.ts(21,9): error TS2322: Type 'string' is not assignable to type 'number'.
+src/mocks/schedules.ts(33,28): error TS2322: Type 'string' is not assignable to type 'number'.
+src/pages/client/BookingPage.tsx(269,87): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
