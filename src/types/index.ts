@@ -63,14 +63,14 @@ export interface Appointment {
     services: Service[];
     totalPrice: number;
     date: string;
-    startTime: LocalTime;
-    endTime: LocalTime;
+    startTime: string;
+    endTime: string;
     status: 'AGENDADO' | 'CANCELADO_POR_CLIENTE' | 'CANCELADO_POR_BARBEIRO' | 'CONCLUIDO' | 'PROPOSTA_REAGENDAMENTO' | 'FINALIZADO';
     observation: string;
     barberMessage: string;
     proposedDate: string | null;
-    proposedStartTime: LocalTime | null;
-    proposedEndTime: LocalTime | null;
+    proposedStartTime: string | null;
+    proposedEndTime: string | null;
     clientPhone: string;
     barberPhone: string;
     createdAt: string;
@@ -81,7 +81,7 @@ export interface AppointmentRequest {
     barberId: number;
     serviceIds: number[];
     date: string;
-    startTime: LocalTime;
+    startTime: string; // "HH:mm" string as per @JsonFormat on backend
     observation?: string;
 }
 
@@ -89,14 +89,18 @@ export interface AvailabilityResponse {
     id: number;
     barberId: number;
     dayOfWeek: number;
-    startTime: LocalTime;
-    endTime: LocalTime;
+    startTime: string; // "HH:mm" string as per @JsonFormat on backend
+    endTime: string;
+    breakStartTime: string | null;
+    breakEndTime: string | null;
 }
 
 export interface AvailabilityRequest {
     dayOfWeek: number;
-    startTime: LocalTime;
-    endTime: LocalTime;
+    startTime: string; // "HH:mm" string
+    endTime: string;
+    breakStartTime?: string | null;
+    breakEndTime?: string | null;
 }
 
 export interface WorkSchedule {
@@ -111,6 +115,8 @@ export interface WorkDay {
     enabled: boolean;
     openTime: string; // Keep string for UI "HH:mm" handling
     closeTime: string;
+    breakStart: string | null;
+    breakEnd: string | null;
 }
 
 export interface DayOff {

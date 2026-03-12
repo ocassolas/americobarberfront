@@ -16,6 +16,9 @@ export function DashboardPage() {
 
     useEffect(() => {
         fetchData();
+        // Auto-refresh every 60s so auto-finalized appointments and revenue update without manual reload
+        const interval = setInterval(fetchData, 60_000);
+        return () => clearInterval(interval);
     }, []);
 
     const fetchData = async () => {
@@ -52,16 +55,20 @@ export function DashboardPage() {
     const today = new Date();
     const todayStr = format(today, 'yyyy-MM-dd');
 
-    const fmtTime = (h: number, m: number) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    const parseTime = (timeStr: string | undefined) => {
+        if (!timeStr) return { h: 0, m: 0, str: '00:00' };
+        const [h, m] = timeStr.split(':').map(Number);
+        return { h: h || 0, m: m || 0, str: timeStr };
+    };
 
-    const todayAppointments = appointments.filter((a) => a.date === todayStr && !a.status.startsWith('CANCELADO'));
+    const todayAppointments = appointments.filter((a) => a && a.date === todayStr && a.status && !a.status.startsWith('CANCELADO'));
     const todayRevenue = todayAppointments
         .filter(a => a.status === 'FINALIZADO' || a.status === 'CONCLUIDO')
         .reduce((sum, a) => sum + (a.totalPrice || 0), 0);
     
     const nextApt = todayAppointments
-        .filter((a) => a.status === 'AGENDADO' && fmtTime(a.startTime.hour, a.startTime.minute) >= format(today, 'HH:mm'))
-        .sort((a, b) => fmtTime(a.startTime.hour, a.startTime.minute).localeCompare(fmtTime(b.startTime.hour, b.startTime.minute)))[0];
+        .filter((a) => a.status === 'AGENDADO' && parseTime(a.startTime).str >= format(today, 'HH:mm'))
+        .sort((a, b) => parseTime(a.startTime).str.localeCompare(parseTime(b.startTime).str))[0];
 
     const formatPrice = (p: number) => p.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -69,7 +76,7 @@ export function DashboardPage() {
         { label: 'Hoje', value: todayAppointments.length.toString(), icon: Calendar, color: 'text-info bg-info/10' },
         { label: 'Receita Hoje', value: formatPrice(todayRevenue), icon: DollarSign, color: 'text-success bg-success/10' },
         { label: 'Concluídos', value: todayAppointments.filter((a) => a.status === 'FINALIZADO' || a.status === 'CONCLUIDO').length.toString(), icon: Users, color: 'text-accent bg-accent/10' },
-        { label: 'Próximo', value: nextApt ? fmtTime(nextApt.startTime.hour, nextApt.startTime.minute) : '--:--', icon: Clock, color: 'text-warning bg-warning/10' },
+        { label: 'Próximo', value: nextApt ? parseTime(nextApt.startTime).str : '--:--', icon: Clock, color: 'text-warning bg-warning/10' },
     ];
 
     if (loading) {
@@ -128,21 +135,21 @@ export function DashboardPage() {
                 ) : (
                     <div className="space-y-2">
                         {todayAppointments
-                            .sort((a, b) => fmtTime(a.startTime.hour, a.startTime.minute).localeCompare(fmtTime(b.startTime.hour, b.startTime.minute)))
+                            .sort((a, b) => parseTime(a.startTime).str.localeCompare(parseTime(b.startTime).str))
                             .map((apt) => (
                                 <div
                                     key={apt.id}
                                     className="flex items-center gap-4 p-3 rounded-xl bg-bg-input hover:bg-accent/5 transition group"
                                 >
-                                    <span className="font-mono font-semibold text-accent text-sm w-14">{fmtTime(apt.startTime.hour, apt.startTime.minute)}</span>
+                                    <span className="font-mono font-semibold text-accent text-sm w-14">{parseTime(apt.startTime).str}</span>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium truncate">{apt.clientName}</p>
+                                        <p className="text-sm font-medium truncate">{apt.clientName || 'Cliente'}</p>
                                         <p className="text-xs text-text-secondary truncate">
                                             {apt.services?.map(s => s.name).join(', ') || 'Nenhum serviço'}
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <span className="text-xs text-text-secondary hidden sm:inline">{apt.barberName.split(' ')[0]}</span>
+                                        <span className="text-xs text-text-secondary hidden sm:inline">{(apt.barberName || 'N/A').split(' ')[0]}</span>
                                         {apt.status === 'AGENDADO' ? (
                                             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
                                                 <button 
@@ -178,9 +185,9 @@ export function DashboardPage() {
                     isOpen={!!proposeTarget}
                     onClose={() => setProposeTarget(null)}
                     onConfirm={handleConfirmPropose}
-                    appointmentDate={proposeTarget.date}
-                    appointmentTime={fmtTime(proposeTarget.startTime.hour, proposeTarget.startTime.minute)}
-                    clientName={proposeTarget.clientName}
+                    appointmentDate={proposeTarget.date || ''}
+                    appointmentTime={parseTime(proposeTarget.startTime).str}
+                    clientName={proposeTarget.clientName || 'Cliente'}
                 />
             )}
         </div>

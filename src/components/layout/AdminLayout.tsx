@@ -35,7 +35,7 @@ export function AdminLayout() {
 
     const handleLogout = () => {
         logout();
-        navigate('/admin');
+        navigate('/');
     };
 
     const sidebarWidth = collapsed ? 'w-[72px]' : 'w-64';
@@ -49,8 +49,8 @@ export function AdminLayout() {
             >
                 {/* Logo / Brand */}
                 <div className="admin-sidebar-header">
-                    <div className="admin-sidebar-logo">
-                        AB
+                    <div className="admin-sidebar-logo overflow-hidden">
+                        <img src="/logo.png" alt={BUSINESS.name} className="w-full h-full object-cover" />
                     </div>
                     {!collapsed && (
                         <motion.span
@@ -194,8 +194,8 @@ export function AdminLayout() {
                             {/* Mobile header */}
                             <div className="admin-sidebar-header">
                                 <div className="flex items-center gap-2.5">
-                                    <div className="admin-sidebar-logo">
-                                        AB
+                                    <div className="admin-sidebar-logo overflow-hidden">
+                                        <img src="/logo.png" alt={BUSINESS.name} className="w-full h-full object-cover" />
                                     </div>
                                     <span className="font-heading font-semibold text-sm text-text-primary">
                                         {BUSINESS.name}

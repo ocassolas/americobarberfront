@@ -182,11 +182,13 @@ function assembleSchedule(barberId: number, barberName: string, avail: Availabil
             return {
                 dayOfWeek: feDay,
                 enabled: true,
-                openTime: `${String(slot.startTime.hour).padStart(2, '0')}:${String(slot.startTime.minute).padStart(2, '0')}`,
-                closeTime: `${String(slot.endTime.hour).padStart(2, '0')}:${String(slot.endTime.minute).padStart(2, '0')}`
+                openTime: (slot.startTime as unknown as string).substring(0, 5),
+                closeTime: (slot.endTime as unknown as string).substring(0, 5),
+                breakStart: slot.breakStartTime ? (slot.breakStartTime as unknown as string).substring(0, 5) : null,
+                breakEnd: slot.breakEndTime ? (slot.breakEndTime as unknown as string).substring(0, 5) : null,
             };
         }
-        return { dayOfWeek: feDay, enabled: false, openTime: '08:00', closeTime: '20:00' };
+        return { dayOfWeek: feDay, enabled: false, openTime: '08:00', closeTime: '20:00', breakStart: null, breakEnd: null };
     });
 
     const daysOff: DayOff[] = daysOffDates.map((date, idx) => ({
@@ -204,6 +206,16 @@ function assembleSchedule(barberId: number, barberName: string, avail: Availabil
     };
 }
 
+export async function getBarberAvailability(barberId: number): Promise<AvailabilityResponse[]> {
+    if (!barberId || barberId <= 0) return [];
+    try {
+        const res = await apiClient.get<AvailabilityResponse[]>(`/clients/barbers/${barberId}/availability`);
+        return res.data;
+    } catch {
+        return [];
+    }
+}
+
 export async function getTimeSlots(barberId: number, date: string, serviceIds: number[]): Promise<TimeSlot[]> {
      // Ensure barberId is valid (BookingPage might pass -1 for 'no preference')
     if (!barberId || barberId === -1) {
@@ -212,15 +224,15 @@ export async function getTimeSlots(barberId: number, date: string, serviceIds: n
         return [];
     }
     try {
-        const res = await apiClient.get<LocalTime[]>(`/clients/barbers/${barberId}/available-times`, {
+        const res = await apiClient.get<string[]>(`/clients/barbers/${barberId}/available-times`, {
             params: { 
                 date,
                 serviceIds: serviceIds.join(',')
             }
         });
         
-        return res.data.map(lt => ({
-            time: `${String(lt.hour).padStart(2, '0')}:${String(lt.minute).padStart(2, '0')}`,
+        return res.data.map((timeStr: string) => ({
+            time: timeStr.substring(0, 5),
             available: true
         }));
     } catch (error) {
@@ -249,13 +261,13 @@ export async function saveSchedule(schedule: WorkSchedule): Promise<WorkSchedule
     const availabilityPayload = schedule.workDays
         .filter(wd => wd.enabled)
         .map(wd => {
-            const [oH, oM] = wd.openTime.split(':').map(Number);
-            const [cH, cM] = wd.closeTime.split(':').map(Number);
             const beDay = wd.dayOfWeek === 0 ? 7 : wd.dayOfWeek;
             return {
                 dayOfWeek: beDay,
-                startTime: { hour: oH, minute: oM, second: 0, nano: 0 },
-                endTime: { hour: cH, minute: cM, second: 0, nano: 0 }
+                startTime: wd.openTime.substring(0, 5),
+                endTime: wd.closeTime.substring(0, 5),
+                breakStartTime: wd.breakStart || null,
+                breakEndTime: wd.breakEnd || null,
             };
         });
 

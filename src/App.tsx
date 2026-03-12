@@ -16,7 +16,6 @@ import { ClientLoginPage } from '@/pages/client/ClientLoginPage';
 import { ClientRegisterPage } from '@/pages/client/ClientRegisterPage';
 
 // Admin pages
-import { AdminLoginPage } from '@/pages/admin/AdminLoginPage';
 import { DashboardPage } from '@/pages/admin/DashboardPage';
 import { AgendaPage } from '@/pages/admin/AgendaPage';
 import { ServicesPage } from '@/pages/admin/ServicesPage';
@@ -68,9 +67,6 @@ function App() {
         {/* Client Auth */}
         <Route path="/entrar" element={<ClientLoginPage />} />
         <Route path="/cadastrar" element={<ClientRegisterPage />} />
-
-        {/* Admin login */}
-        <Route path="/admin" element={<AdminLoginPage />} />
 
         {/* Admin authenticated routes */}
         <Route element={<AdminGuard><AdminLayout /></AdminGuard>}>

@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { useBookingStore } from '@/stores/useBookingStore';
 import { useToastStore } from '@/stores/useToastStore';
-import { getTimeSlots, createAppointment, getBarbers, getServices } from '@/services/api';
+import { getTimeSlots, createAppointment, getBarbers, getServices, getBarberAvailability } from '@/services/api';
 import { TEXT, BUSINESS } from '@/config/constants';
 import { formatWhatsAppMessage, openWhatsApp } from '@/utils/whatsapp';
 import type { TimeSlot, Service, Barber } from '@/types';
@@ -141,14 +141,12 @@ export function BookingPage() {
                 return;
             }
             
-            const [hour, minute] = (store.time ?? "00:00").split(':').map(Number);
-            
             await createAppointment({
                 clientId: user.id,
                 barberId: store.barberId ?? 1,
                 serviceIds: store.services.map(s => s.id),
                 date: store.date ?? '',
-                startTime: { hour, minute, second: 0, nano: 0 },
+                startTime: (store.time ?? '00:00').substring(0, 5),
                 observation: store.notes
             });
             addToast('success', TEXT.booking.success);
@@ -324,8 +322,8 @@ function StepBarber() {
                         className={`relative flex items-center gap-4 p-5 rounded-2xl border-2 transition-all text-left ${selected ? 'border-accent bg-accent/5' : 'border-border bg-bg-card hover:border-accent/30'
                             }`}
                     >
-                        <div className="w-14 h-14 rounded-full bg-accent/20 flex items-center justify-center text-accent font-heading font-bold text-lg flex-shrink-0">
-                            {b.name.charAt(0)}
+                        <div className="w-14 h-14 rounded-full bg-accent/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+                            <img src="/logo.png" alt={b.name} className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1">
                             <h3 className="font-semibold">{b.name}</h3>
@@ -445,16 +443,25 @@ function StepDate() {
     const { barberId, date, setDate } = useBookingStore();
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [daysOff, setDaysOff] = useState<string[]>([]);
+    const [workDays, setWorkDays] = useState<number[]>([]); // days of week barber works (JS: 0=Sun..6=Sat)
+    const [loadingAvail, setLoadingAvail] = useState(true);
     const today = startOfDay(new Date());
 
     useEffect(() => {
         if (!barberId || barberId === -1) return;
-        const actualBarberId = barberId;
-        // Fetch unavailable dates from api
-        // Since getBarberDateOff is used in getTimeSlots indirectly, we can also fetch it here for the calendar
-        apiClient.get<string[]>(`/clients/barbers/${actualBarberId}/date-off`)
-            .then(res => setDaysOff(res.data))
-            .catch(() => {});
+        setLoadingAvail(true);
+
+        // Fetch days off and availability in parallel
+        Promise.all([
+            apiClient.get<string[]>(`/clients/barbers/${barberId}/date-off`).then(res => res.data).catch(() => []),
+            getBarberAvailability(barberId),
+        ]).then(([daysOffData, availability]) => {
+            setDaysOff(daysOffData);
+            // Convert BE dayOfWeek (1=Mon..7=Sun) to JS dayOfWeek (0=Sun..6=Sat)
+            const activeDays = availability.map(a => a.dayOfWeek === 7 ? 0 : a.dayOfWeek);
+            setWorkDays(activeDays);
+            setLoadingAvail(false);
+        });
     }, [barberId]);
 
     const daysInMonth = eachDayOfInterval({
@@ -464,11 +471,15 @@ function StepDate() {
 
     const firstDayOffset = getDay(startOfMonth(currentMonth));
 
+    const formatDateStr = (d: Date) =>
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
     const isUnavailable = (d: Date) => {
         if (isBefore(d, today)) return true;
         const dateStr = formatDateStr(d);
         if (daysOff.includes(dateStr)) return true;
-        if (getDay(d) === 0) return true; // Sundays as fallback
+        // Disable days the barber doesn't work
+        if (workDays.length > 0 && !workDays.includes(getDay(d))) return true;
         return false;
     };
 
@@ -480,9 +491,6 @@ function StepDate() {
     const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
     const selectedDate = date ? new Date(date + 'T12:00:00') : null;
-
-    const formatDateStr = (d: Date) =>
-        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
     return (
         <div className="bg-bg-card border border-border rounded-2xl p-4 md:p-6 max-w-md mx-auto">

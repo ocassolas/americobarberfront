@@ -135,7 +135,7 @@ export function MyAppointmentsPage() {
                                                 <Calendar size={14} className="text-accent" />
                                                 <span className="text-sm font-mono">{formatDate(apt.date)}</span>
                                                 <Clock size={14} className="text-accent ml-2" />
-                                                <span className="text-sm font-mono">{String(apt.startTime.hour).padStart(2, '0')}:{String(apt.startTime.minute).padStart(2, '0')}</span>
+                                                <span className="text-sm font-mono">{(apt.startTime as string).substring(0, 5)}</span>
                                             </div>
                                             <p className="text-sm text-text-secondary">{apt.barberName}</p>
                                         </div>
@@ -149,7 +149,7 @@ export function MyAppointmentsPage() {
                                             <p className="text-xs font-bold text-warning uppercase mb-2">Proposta do Barbeiro</p>
                                             <div className="flex items-center gap-2 mb-2">
                                                 <Calendar size={12} className="text-warning" />
-                                                <span className="text-xs font-mono">{formatDate(apt.proposedDate)} às {String(apt.proposedStartTime?.hour).padStart(2, '0')}:{String(apt.proposedStartTime?.minute).padStart(2, '0')}</span>
+                                                <span className="text-xs font-mono">{formatDate(apt.proposedDate)} às {(apt.proposedStartTime as string | null)?.substring(0, 5) ?? '--:--'}</span>
                                             </div>
                                             {apt.barberMessage && (
                                                 <p className="text-xs italic text-text-secondary mb-3">"{apt.barberMessage}"</p>
@@ -283,7 +283,7 @@ export function MyAppointmentsPage() {
                     onClose={() => setRescheduleTarget(null)}
                     onConfirm={handleConfirmReschedule}
                     appointmentDate={rescheduleTarget.date}
-                    appointmentTime={`${String(rescheduleTarget.startTime.hour).padStart(2, '0')}:${String(rescheduleTarget.startTime.minute).padStart(2, '0')}`}
+                    appointmentTime={(rescheduleTarget.startTime as string).substring(0, 5)}
                     services={rescheduleTarget.services.map(s => s.name)}
                 />
             )}

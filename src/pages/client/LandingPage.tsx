@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import {
-    MapPin, Phone, Clock, Star, Scissors, PenTool, Sparkles,
+    MapPin, Phone, Star, Scissors, PenTool, Sparkles,
     Eye, Palette, Droplets, ChevronRight, Calendar, Instagram, MessageCircle,
     ArrowRight, LogIn, User as UserIcon
 } from 'lucide-react';
@@ -296,7 +296,9 @@ export function LandingPage() {
 
                         <motion.a
                             variants={staggerChild}
-                            href={`tel:${BUSINESS.phone.replace(/\D/g, '')}`}
+                            href={BUSINESS.whatsapp}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="landing-info-card group"
                         >
                             <div className="landing-info-icon">
@@ -304,16 +306,23 @@ export function LandingPage() {
                             </div>
                             <h3 className="landing-info-title">Telefone</h3>
                             <p className="landing-info-text font-mono">{BUSINESS.phone}</p>
-                            <span className="landing-info-link">Ligar agora <ChevronRight size={14} /></span>
+                            <span className="landing-info-link">Enviar mensagem <ChevronRight size={14} /></span>
                         </motion.a>
 
-                        <motion.div variants={staggerChild} className="landing-info-card">
+                        <motion.a
+                            variants={staggerChild}
+                            href={`https://instagram.com/${BUSINESS.instagram.replace('@', '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="landing-info-card group"
+                        >
                             <div className="landing-info-icon">
-                                <Clock size={24} />
+                                <Instagram size={24} />
                             </div>
-                            <h3 className="landing-info-title">Horários</h3>
-                            <p className="landing-info-text">{BUSINESS.workingHours}</p>
-                        </motion.div>
+                            <h3 className="landing-info-title">Instagram</h3>
+                            <p className="landing-info-text">{BUSINESS.instagram}</p>
+                            <span className="landing-info-link">Seguir <ChevronRight size={14} /></span>
+                        </motion.a>
                     </StaggerContainer>
                 </div>
             </section>
@@ -321,7 +330,6 @@ export function LandingPage() {
             {/* ═══════════ SOCIAL / FINAL CTA ═══════════ */}
             <section className="landing-final-cta">
                 <Reveal>
-                    <img src="/logo.png" alt="Américo Barber Club" className="landing-final-logo" />
                     <h2 className="landing-final-title">Pronto para o seu novo visual?</h2>
                     <p className="landing-final-subtitle">
                         Agende agora e viva a experiência Américo Barber Club.

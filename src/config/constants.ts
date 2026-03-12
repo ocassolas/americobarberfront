@@ -3,12 +3,12 @@ import type { BusinessConfig, AdminCredentials } from '@/types';
 export const BUSINESS: BusinessConfig = {
     name: 'Américo Barber',
     subtitle: 'Estilo e Precisão',
-    address: 'Rua Augusta, 1234 - Consolação, São Paulo - SP',
-    addressLink: 'https://maps.google.com/?q=Rua+Augusta+1234+Consolacao+Sao+Paulo',
-    phone: '(11) 99876-5432',
-    whatsapp: 'https://wa.me/5511998765432',
-    instagram: 'https://instagram.com/americobarber',
-    workingHours: 'Seg a Sáb: 08:00 - 20:00',
+    address: 'Av. General Anápio Gomes, 296 - Cachoeirinha/RS',
+    addressLink: 'https://maps.google.com/?q=Av.+General+Anapio+Gomes+296+Cachoeirinha+RS',
+    phone: '+55 51 99303-3500',
+    whatsapp: 'https://wa.me/5551993033500',
+    instagram: '@americo_barber_club',
+    workingHours: '',
     slotInterval: 30,
 };
 

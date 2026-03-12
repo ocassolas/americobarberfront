@@ -64,10 +64,14 @@ export function AgendaPage() {
     const fmtDate = (d: Date) =>
         `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-    const getAptsForDay = (d: Date) =>
-        appointments.filter((a) => a.date === fmtDate(d) && !a.status.startsWith('CANCELADO'));
+    const parseTime = (timeStr: string | undefined) => {
+        if (!timeStr) return { h: 0, m: 0, str: '00:00' };
+        const [h, m] = timeStr.split(':').map(Number);
+        return { h: h || 0, m: m || 0, str: timeStr };
+    };
 
-    const fmtTime = (h: number, m: number) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    const getAptsForDay = (d: Date) =>
+        appointments.filter((a) => a && a.date === fmtDate(d) && a.status && !a.status.startsWith('CANCELADO'));
 
     const navigate = (dir: number) => {
         if (view === 'week') setCurrentDate((p) => dir > 0 ? addWeeks(p, 1) : subWeeks(p, 1));
@@ -151,9 +155,9 @@ export function AgendaPage() {
                                             }`}
                                         >
                                             <span className={`font-mono font-medium ${apt.status === 'FINALIZADO' ? 'text-success' : 'text-accent'}`}>
-                                                {fmtTime(apt.startTime.hour, apt.startTime.minute)}
+                                                {parseTime(apt.startTime).str}
                                             </span>
-                                            <p className="truncate text-text-primary">{apt.clientName.split(' ')[0]}</p>
+                                            <p className="truncate text-text-primary">{(apt.clientName || 'Cliente').split(' ')[0]}</p>
                                         </button>
                                     ))}
                                 </div>
@@ -169,8 +173,8 @@ export function AgendaPage() {
                         <div className="space-y-2">
                             {getAptsForDay(currentDate)
                                 .sort((a, b) => {
-                                    const ta = fmtTime(a.startTime.hour, a.startTime.minute);
-                                    const tb = fmtTime(b.startTime.hour, b.startTime.minute);
+                                    const ta = parseTime(a.startTime).str;
+                                    const tb = parseTime(b.startTime).str;
                                     return ta.localeCompare(tb);
                                 })
                                 .map((apt) => (
@@ -180,10 +184,10 @@ export function AgendaPage() {
                                         className="w-full flex items-center gap-4 p-3 rounded-xl bg-bg-input hover:bg-accent/5 transition text-left"
                                     >
                                         <span className={`font-mono font-semibold w-14 text-sm ${apt.status === 'FINALIZADO' ? 'text-success' : 'text-accent'}`}>
-                                            {fmtTime(apt.startTime.hour, apt.startTime.minute)}
+                                            {parseTime(apt.startTime).str}
                                         </span>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium">{apt.clientName}</p>
+                                            <p className="text-sm font-medium">{apt.clientName || 'Cliente'}</p>
                                             <div className="flex gap-1 flex-wrap mt-0.5">
                                                 {apt.services?.map(s => (
                                                     <span key={s.id} className="text-[10px] bg-accent/10 px-1.5 py-0.5 rounded text-accent">
@@ -193,7 +197,7 @@ export function AgendaPage() {
                                             </div>
                                         </div>
                                         <div className="flex flex-col items-end gap-1">
-                                            <span className="text-xs text-text-secondary">{apt.barberName.split(' ')[0]}</span>
+                                            <span className="text-xs text-text-secondary">{(apt.barberName || 'N/A').split(' ')[0]}</span>
                                             {apt.status === 'FINALIZADO' && <span className="text-[10px] text-success font-bold">FINALIZADO</span>}
                                         </div>
                                     </button>
@@ -215,9 +219,9 @@ export function AgendaPage() {
                         <h3 className="font-heading font-semibold text-lg mb-4">Detalhes do Agendamento</h3>
                         <div className="space-y-3 text-sm">
                             <div className="flex justify-between"><span className="text-text-secondary">Status</span><span className={`font-bold ${selected.status === 'FINALIZADO' ? 'text-success' : 'text-accent'}`}>{selected.status}</span></div>
-                            <div className="flex justify-between"><span className="text-text-secondary">Cliente</span><span>{selected.clientName}</span></div>
-                            <div className="flex justify-between"><span className="text-text-secondary">Barbeiro</span><span>{selected.barberName}</span></div>
-                            <div className="flex justify-between"><span className="text-text-secondary">Horário</span><span className="font-mono">{fmtTime(selected.startTime.hour, selected.startTime.minute)}</span></div>
+                            <div className="flex justify-between"><span className="text-text-secondary">Cliente</span><span>{selected.clientName || 'Cliente'}</span></div>
+                            <div className="flex justify-between"><span className="text-text-secondary">Barbeiro</span><span>{selected.barberName || 'N/A'}</span></div>
+                            <div className="flex justify-between"><span className="text-text-secondary">Horário</span><span className="font-mono">{parseTime(selected.startTime).str}</span></div>
                             <div className="flex justify-between"><span className="text-text-secondary">Total</span><span className="font-mono text-accent font-bold">{formatPrice(selected.totalPrice)}</span></div>
                             <div>
                                 <span className="text-text-secondary block mb-1">Serviços</span>
@@ -285,9 +289,9 @@ export function AgendaPage() {
                     isOpen={!!proposeTarget}
                     onClose={() => setProposeTarget(null)}
                     onConfirm={handleConfirmPropose}
-                    appointmentDate={proposeTarget.date}
-                    appointmentTime={fmtTime(proposeTarget.startTime.hour, proposeTarget.startTime.minute)}
-                    clientName={proposeTarget.clientName}
+                    appointmentDate={proposeTarget.date || ''}
+                    appointmentTime={parseTime(proposeTarget.startTime).str}
+                    clientName={proposeTarget.clientName || 'Cliente'}
                 />
             )}
         </div>
