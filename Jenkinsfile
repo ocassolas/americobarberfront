@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        VPS_USER = "jgrando"
+        VPS_USER = "jenkins"
         VPS_IP = "72.61.47.148"
         SSH_CREDENTIALS_ID = "vps-ssh-key"
     }
@@ -26,7 +26,7 @@ pipeline {
                     if (env.BRANCH_NAME == 'main' || env.BRANCH_NAME == 'master') {
                         env.DEPLOY_ENV = 'prod'
                         env.BUILD_CMD = 'npm run build' // Uses .env.production by default usually
-                    } else if (env.BRANCH_NAME == 'develop' || env.BRANCH_NAME == 'staging') {
+                    } else if (env.BRANCH_NAME == 'develop' || env.BRANCH_NAME == 'staging' || env.BRANCH_NAME == 'hml') {
                         env.DEPLOY_ENV = 'hml'
                         env.BUILD_CMD = 'npm run build -- --mode staging' // Adjust based on your scripts
                     } else {
