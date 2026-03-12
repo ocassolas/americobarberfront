@@ -61,6 +61,8 @@ export const TEXT = {
         services: 'Serviços',
         history: 'Histórico',
         workHours: 'Horários',
+        barbers: 'Barbeiros',
+        clients: 'Clientes',
         settings: 'Configurações',
         logout: 'Sair',
     },

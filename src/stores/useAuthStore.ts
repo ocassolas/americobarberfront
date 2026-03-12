@@ -8,6 +8,7 @@ interface AuthStore {
     user: UserResponse | null;
     login: (data: LoginResponse) => void;
     logout: () => void;
+    setUser: (user: UserResponse) => void;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -34,6 +35,7 @@ export const useAuthStore = create<AuthStore>()(
                 }
             }),
             logout: () => set({ isAuthenticated: false, token: null, user: null }),
+            setUser: (user: UserResponse) => set({ user }),
         }),
         { name: 'americo-auth' }
     )

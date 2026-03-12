@@ -4,6 +4,7 @@ import { Lock, Mail, User as UserIcon, Phone, FileText, ArrowLeft, Eye, EyeOff }
 import { motion } from 'framer-motion';
 import { useToastStore } from '@/stores/useToastStore';
 import { apiClient } from '@/services/apiClient';
+import { maskCPF, maskPhone } from '@/utils/masks';
 
 export function ClientRegisterPage() {
     const [formData, setFormData] = useState({
@@ -21,7 +22,13 @@ export function ClientRegisterPage() {
     const navigate = useNavigate();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        const { name, value } = e.target;
+        let maskedValue = value;
+
+        if (name === 'cpf') maskedValue = maskCPF(value);
+        if (name === 'phone') maskedValue = maskPhone(value);
+
+        setFormData(prev => ({ ...prev, [name]: maskedValue }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {

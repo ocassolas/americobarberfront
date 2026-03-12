@@ -1,20 +1,32 @@
-import { useState } from 'react';
-import { Building, Phone, MapPin, Save } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Building, Phone, MapPin, Save, User, Mail } from 'lucide-react';
 import { useToastStore } from '@/stores/useToastStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { BUSINESS } from '@/config/constants';
+import { updateProfile } from '@/services/api';
+import { maskPhone } from '@/utils/masks';
 
 export function AdminSettingsPage() {
-    const [name, setName] = useState(BUSINESS.name);
-    const [address, setAddress] = useState(BUSINESS.address);
-    const [phone, setPhone] = useState(BUSINESS.phone);
+    const user = useAuthStore((s) => s.user);
+    const setUser = useAuthStore((s) => s.setUser);
+    
+    const [name, setName] = useState(user?.name || '');
+    const [email, setEmail] = useState(user?.email || '');
+    const [phone, setPhone] = useState(user?.phone || '');
     const [saving, setSaving] = useState(false);
     const addToast = useToastStore((s) => s.addToast);
 
     const handleSave = async () => {
         setSaving(true);
-        await new Promise((r) => setTimeout(r, 500));
-        addToast('success', 'Configurações salvas!');
-        setSaving(false);
+        try {
+            const updated = await updateProfile({ name, email, phone });
+            setUser(updated);
+            addToast('success', 'Perfil atualizado com sucesso!');
+        } catch (error) {
+            addToast('error', 'Erro ao atualizar perfil.');
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -22,43 +34,46 @@ export function AdminSettingsPage() {
             <h1 className="font-heading text-2xl font-bold">Configurações</h1>
 
             <div className="bg-bg-card card-surface border border-border rounded-2xl p-6 max-w-lg mx-auto">
-                <h2 className="font-heading font-semibold mb-4">Dados da Barbearia</h2>
+                <h2 className="font-heading font-semibold mb-6 flex items-center gap-2">
+                    <User size={20} className="text-accent" />
+                    Meus Dados
+                </h2>
 
                 <div className="space-y-4">
                     <div>
-                        <label className="flex items-center gap-2 text-sm font-medium mb-2">
-                            <Building size={16} className="text-accent" />
-                            Nome
-                        </label>
-                        <input
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="w-full bg-bg-input input-surface border border-border rounded-xl px-4 py-3 text-sm focus:border-accent focus:ring-1 focus:ring-accent/30 transition outline-none"
-                        />
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1.5 ml-1">Nome Completo</label>
+                        <div className="relative">
+                            <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-accent/50" size={18} />
+                            <input
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="w-full bg-bg-input border border-border rounded-xl pl-11 pr-4 py-3 text-sm focus:border-accent outline-none transition"
+                            />
+                        </div>
                     </div>
 
                     <div>
-                        <label className="flex items-center gap-2 text-sm font-medium mb-2">
-                            <MapPin size={16} className="text-accent" />
-                            Endereço
-                        </label>
-                        <input
-                            value={address}
-                            onChange={(e) => setAddress(e.target.value)}
-                            className="w-full bg-bg-input input-surface border border-border rounded-xl px-4 py-3 text-sm focus:border-accent focus:ring-1 focus:ring-accent/30 transition outline-none"
-                        />
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1.5 ml-1">E-mail</label>
+                        <div className="relative">
+                            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-accent/50" size={18} />
+                            <input
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full bg-bg-input border border-border rounded-xl pl-11 pr-4 py-3 text-sm focus:border-accent outline-none transition"
+                            />
+                        </div>
                     </div>
 
                     <div>
-                        <label className="flex items-center gap-2 text-sm font-medium mb-2">
-                            <Phone size={16} className="text-accent" />
-                            Telefone
-                        </label>
-                        <input
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            className="w-full bg-bg-input input-surface border border-border rounded-xl px-4 py-3 text-sm font-mono focus:border-accent focus:ring-1 focus:ring-accent/30 transition outline-none"
-                        />
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1.5 ml-1">Telefone</label>
+                        <div className="relative">
+                            <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-accent/50" size={18} />
+                            <input
+                                value={phone}
+                                onChange={(e) => setPhone(maskPhone(e.target.value))}
+                                className="w-full bg-bg-input border border-border rounded-xl pl-11 pr-4 py-3 text-sm font-mono focus:border-accent outline-none transition"
+                            />
+                        </div>
                     </div>
 
                     <button

@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Clock, User, Phone } from 'lucide-react';
-import { getAppointments } from '@/services/api';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeft, ChevronRight, Clock, User, Phone, CheckCircle2, History } from 'lucide-react';
+import { getAppointments, finalizeAppointment, proposeReschedule } from '@/services/api';
 import type { Appointment } from '@/types';
 import {
     format, addDays, subDays, startOfWeek, eachDayOfInterval,
     addWeeks, subWeeks, isSameDay,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useToastStore } from '@/stores/useToastStore';
+import { RescheduleProposalModal } from '@/components/modals/RescheduleProposalModal';
 
 type ViewMode = 'week' | 'day';
 
@@ -17,13 +19,44 @@ export function AgendaPage() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [view, setView] = useState<ViewMode>('week');
     const [selected, setSelected] = useState<Appointment | null>(null);
+    const [proposeTarget, setProposeTarget] = useState<Appointment | null>(null);
+    const addToast = useToastStore((s) => s.addToast);
 
     useEffect(() => {
-        getAppointments().then((data) => {
-            setAppointments(data);
-            setLoading(false);
-        });
+        fetchData();
     }, []);
+
+    const fetchData = async () => {
+        try {
+            const data = await getAppointments();
+            setAppointments(data);
+        } catch (error) {
+            addToast('error', 'Erro ao carregar agendamentos.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleFinalize = async (id: number) => {
+        try {
+            await finalizeAppointment(id);
+            addToast('success', 'Atendimento finalizado!');
+            setSelected(null);
+            fetchData();
+        } catch (error) {
+            addToast('error', 'Erro ao finalizar atendimento.');
+        }
+    };
+
+    const handleConfirmPropose = async (data: any) => {
+        if (!proposeTarget) return;
+        try {
+            await proposeReschedule(proposeTarget.id, data);
+            fetchData();
+        } catch (error) {
+            throw error;
+        }
+    };
 
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
     const weekDays = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
@@ -32,7 +65,7 @@ export function AgendaPage() {
         `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
     const getAptsForDay = (d: Date) =>
-        appointments.filter((a) => a.date === fmtDate(d) && a.status !== 'CANCELADO_POR_CLIENTE' && a.status !== 'CANCELADO_POR_BARBEIRO');
+        appointments.filter((a) => a.date === fmtDate(d) && !a.status.startsWith('CANCELADO'));
 
     const fmtTime = (h: number, m: number) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 
@@ -100,7 +133,7 @@ export function AgendaPage() {
                             <div
                                 key={day.toISOString()}
                                 className={`bg-bg-card card-surface border rounded-2xl p-3 min-h-[120px] ${isToday ? 'border-accent/40' : 'border-border'
-                                    }`}
+                                     }`}
                             >
                                 <div className="text-center mb-2">
                                     <p className="text-xs text-text-secondary capitalize">{format(day, 'EEE', { locale: ptBR })}</p>
@@ -111,9 +144,15 @@ export function AgendaPage() {
                                         <button
                                             key={apt.id}
                                             onClick={() => setSelected(apt)}
-                                            className="w-full text-left p-1.5 rounded-lg bg-accent/10 hover:bg-accent/20 transition text-xs"
+                                            className={`w-full text-left p-1.5 rounded-lg transition text-xs ${
+                                                apt.status === 'FINALIZADO' || apt.status === 'CONCLUIDO' 
+                                                ? 'bg-success/10 border border-success/20' 
+                                                : 'bg-accent/10 border border-accent/20'
+                                            }`}
                                         >
-                                            <span className="font-mono text-accent font-medium">{fmtTime(apt.startTime.hour, apt.startTime.minute)}</span>
+                                            <span className={`font-mono font-medium ${apt.status === 'FINALIZADO' ? 'text-success' : 'text-accent'}`}>
+                                                {fmtTime(apt.startTime.hour, apt.startTime.minute)}
+                                            </span>
                                             <p className="truncate text-text-primary">{apt.clientName.split(' ')[0]}</p>
                                         </button>
                                     ))}
@@ -140,7 +179,9 @@ export function AgendaPage() {
                                         onClick={() => setSelected(apt)}
                                         className="w-full flex items-center gap-4 p-3 rounded-xl bg-bg-input hover:bg-accent/5 transition text-left"
                                     >
-                                        <span className="font-mono font-semibold text-accent w-14 text-sm">{fmtTime(apt.startTime.hour, apt.startTime.minute)}</span>
+                                        <span className={`font-mono font-semibold w-14 text-sm ${apt.status === 'FINALIZADO' ? 'text-success' : 'text-accent'}`}>
+                                            {fmtTime(apt.startTime.hour, apt.startTime.minute)}
+                                        </span>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-medium">{apt.clientName}</p>
                                             <div className="flex gap-1 flex-wrap mt-0.5">
@@ -151,7 +192,10 @@ export function AgendaPage() {
                                                 ))}
                                             </div>
                                         </div>
-                                        <span className="text-xs text-text-secondary">{apt.barberName.split(' ')[0]}</span>
+                                        <div className="flex flex-col items-end gap-1">
+                                            <span className="text-xs text-text-secondary">{apt.barberName.split(' ')[0]}</span>
+                                            {apt.status === 'FINALIZADO' && <span className="text-[10px] text-success font-bold">FINALIZADO</span>}
+                                        </div>
                                     </button>
                                 ))}
                         </div>
@@ -170,6 +214,7 @@ export function AgendaPage() {
                     >
                         <h3 className="font-heading font-semibold text-lg mb-4">Detalhes do Agendamento</h3>
                         <div className="space-y-3 text-sm">
+                            <div className="flex justify-between"><span className="text-text-secondary">Status</span><span className={`font-bold ${selected.status === 'FINALIZADO' ? 'text-success' : 'text-accent'}`}>{selected.status}</span></div>
                             <div className="flex justify-between"><span className="text-text-secondary">Cliente</span><span>{selected.clientName}</span></div>
                             <div className="flex justify-between"><span className="text-text-secondary">Barbeiro</span><span>{selected.barberName}</span></div>
                             <div className="flex justify-between"><span className="text-text-secondary">Horário</span><span className="font-mono">{fmtTime(selected.startTime.hour, selected.startTime.minute)}</span></div>
@@ -191,20 +236,39 @@ export function AgendaPage() {
                                     <p className="bg-bg-input p-2 rounded-lg italic text-xs">"{selected.observation}"</p>
                                 </div>
                             )}
-                            {selected.clientPhone && (
-                                <div className="pt-2">
+                            
+                            <div className="pt-2 space-y-2">
+                                {selected.clientPhone && (
                                     <a
                                         href={`https://wa.me/55${selected.clientPhone.replace(/\D/g, '')}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-success hover:bg-success/90 text-white text-sm font-medium transition"
+                                        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-success/10 hover:bg-success/20 text-success text-sm font-medium transition border border-success/20"
                                     >
                                         <Phone size={16} />
                                         WhatsApp do Cliente
                                     </a>
-                                </div>
-                            )}
-                            {/* Backend OAS does not send totalDuration or totalPrice explicitly on the appointment payload */}
+                                )}
+
+                                {selected.status === 'AGENDADO' && (
+                                    <>
+                                        <button 
+                                            onClick={() => setProposeTarget(selected)}
+                                            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-accent text-accent text-sm font-medium hover:bg-accent/5 transition"
+                                        >
+                                            <History size={16} />
+                                            Propor Reagendamento
+                                        </button>
+                                        <button 
+                                            onClick={() => handleFinalize(selected.id)}
+                                            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-success text-white text-sm font-bold transition shadow-lg shadow-success/20 hover:scale-[1.02] active:scale-[0.98]"
+                                        >
+                                            <CheckCircle2 size={18} />
+                                            Finalizar Atendimento
+                                        </button>
+                                    </>
+                                )}
+                            </div>
                         </div>
                         <button
                             onClick={() => setSelected(null)}
@@ -215,6 +279,18 @@ export function AgendaPage() {
                     </motion.div>
                 </div>
             )}
+
+            {proposeTarget && (
+                <RescheduleProposalModal
+                    isOpen={!!proposeTarget}
+                    onClose={() => setProposeTarget(null)}
+                    onConfirm={handleConfirmPropose}
+                    appointmentDate={proposeTarget.date}
+                    appointmentTime={fmtTime(proposeTarget.startTime.hour, proposeTarget.startTime.minute)}
+                    clientName={proposeTarget.clientName}
+                />
+            )}
         </div>
     );
 }
+

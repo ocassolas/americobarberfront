@@ -23,6 +23,8 @@ import { ServicesPage } from '@/pages/admin/ServicesPage';
 import { HistoryPage } from '@/pages/admin/HistoryPage';
 import { WorkHoursPage } from '@/pages/admin/WorkHoursPage';
 import { AdminSettingsPage } from '@/pages/admin/AdminSettingsPage';
+import { BarbersManagementPage } from '@/pages/admin/BarbersManagementPage';
+import { ClientsManagementPage } from '@/pages/admin/ClientsManagementPage';
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -75,6 +77,8 @@ function App() {
           <Route path="/admin/dashboard" element={<DashboardPage />} />
           <Route path="/admin/agenda" element={<AgendaPage />} />
           <Route path="/admin/servicos" element={<ServicesPage />} />
+          <Route path="/admin/barbeiros" element={<BarbersManagementPage />} />
+          <Route path="/admin/clientes" element={<ClientsManagementPage />} />
           <Route path="/admin/historico" element={<HistoryPage />} />
           <Route path="/admin/horarios" element={<WorkHoursPage />} />
           <Route path="/admin/configuracoes" element={<AdminSettingsPage />} />

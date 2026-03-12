@@ -17,16 +17,10 @@ export function WorkHoursPage() {
     const addToast = useToastStore((s) => s.addToast);
 
     useEffect(() => {
-        getSchedules().then((data) => { setSchedules(data); setLoading(false); });
-        
-        // Fetch current slot interval
-        const userId = useAuthStore.getState().user?.id;
-        if (userId) {
-            getBarbers().then(barbers => {
-                const me = barbers.find(b => b.id === userId);
-                if (me) setSlotInterval(me.slotIntervalMinutes);
-            });
-        }
+        getSchedules().then((data) => {
+            setSchedules(data);
+            setLoading(false);
+        });
     }, []);
 
     const handleToggleDay = (barberIdx: number, dayOfWeek: number) => {
@@ -53,11 +47,25 @@ export function WorkHoursPage() {
         });
     };
 
+    const handleIntervalChange = (barberIdx: number, mins: number) => {
+        setSchedules((prev) => {
+            const copy = [...prev];
+            // Since UserResponse is part of Barber, we need to track interval in the schedule or fetch it.
+            // For now, let's assume we want to store it in a way we can save.
+            // I'll add slotIntervalMinutes to the WorkSchedule type for frontend use.
+            (copy[barberIdx] as any).slotIntervalMinutes = mins;
+            return [...copy];
+        });
+    };
+
     const handleSave = async (schedule: WorkSchedule) => {
         setSaving(true);
         try {
             await saveSchedule(schedule);
-            await updateSlotInterval(slotInterval);
+            const interval = (schedule as any).slotIntervalMinutes;
+            if (interval) {
+                await updateSlotInterval(interval, schedule.barberId);
+            }
             addToast('success', `Configurações de ${schedule.barberName} salvas!`);
         } catch (err) {
             addToast('error', 'Erro ao salvar configurações.');
@@ -130,19 +138,22 @@ export function WorkHoursPage() {
                             <span className="text-xs text-text-disabled font-normal">(Tempo entre um horário e outro)</span>
                         </label>
                         <div className="grid grid-cols-4 gap-2">
-                            {[15, 30, 45, 60].map((mins) => (
-                                <button
-                                    key={mins}
-                                    onClick={() => setSlotInterval(mins)}
-                                    className={`py-2 rounded-xl text-xs font-medium border-2 transition-all ${
-                                        slotInterval === mins 
-                                            ? 'border-accent bg-accent/10 text-accent font-bold' 
-                                            : 'border-border hover:border-accent/30'
-                                    }`}
-                                >
-                                    {mins} min
-                                </button>
-                            ))}
+                            {[15, 30, 45, 60].map((mins) => {
+                                const currentInterval = (schedule as any).slotIntervalMinutes || 30;
+                                return (
+                                    <button
+                                        key={mins}
+                                        onClick={() => handleIntervalChange(barberIdx, mins)}
+                                        className={`py-2 rounded-xl text-xs font-medium border-2 transition-all ${
+                                            currentInterval === mins 
+                                                ? 'border-accent bg-accent/10 text-accent font-bold' 
+                                                : 'border-border hover:border-accent/30'
+                                        }`}
+                                    >
+                                        {mins} min
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 

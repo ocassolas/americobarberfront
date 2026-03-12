@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Pencil, Trash2, X, Clock, Scissors } from 'lucide-react';
-import { getServices, saveService, deleteService } from '@/services/api';
+import { Plus, Pencil, Trash2, X, Clock, Scissors, User } from 'lucide-react';
+import { getServices, saveService, deleteService, getBarbers } from '@/services/api';
 import { useToastStore } from '@/stores/useToastStore';
-import type { Service } from '@/types';
+import { maskCurrency, parseCurrencyToNumber, onlyNumbers } from '@/utils/masks';
+import type { Service, Barber } from '@/types';
 
 export function ServicesPage() {
     const [services, setServices] = useState<Service[]>([]);
+    const [barbers, setBarbers] = useState<Barber[]>([]);
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState<Service | null>(null);
     const [isNew, setIsNew] = useState(false);
@@ -14,13 +16,22 @@ export function ServicesPage() {
     const addToast = useToastStore((s) => s.addToast);
 
     useEffect(() => {
-        getServices().then((data) => { setServices(data); setLoading(false); });
+        Promise.all([getServices(), getBarbers()]).then(([sData, bData]) => {
+            setServices(sData);
+            setBarbers(bData);
+            setLoading(false);
+        });
     }, []);
 
     const formatPrice = (p: number) => p.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
     const handleSave = async () => {
         if (!editing) return;
+        if (!editing.barberId) {
+            addToast('error', 'Selecione um barbeiro para este serviço.');
+            return;
+        }
+
         const saved = await saveService(editing);
         if (isNew) {
             setServices((prev) => [...prev, saved]);
@@ -41,8 +52,6 @@ export function ServicesPage() {
 
     const openNew = () => {
         setIsNew(true);
-        // We get the currently logged in generic ID if admin/barber or leave empty (backend handles barberId if it is a barber context)
-        // Set id as 0 temporarily so the backend knows to create a POST instead of PUT.
         setEditing({
             id: 0,
             name: '',
@@ -51,7 +60,7 @@ export function ServicesPage() {
             icon: 'scissors',
             description: '',
             active: true,
-            barberId: 0, // This needs to be set properly depending on the admin assigned barber ID
+            barberId: barbers.length === 1 ? barbers[0].id : 0,
         });
     };
 
@@ -88,9 +97,14 @@ export function ServicesPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                             <h3 className="font-medium text-sm">{service.name}</h3>
-                            <p className="text-xs text-text-secondary">
-                                <Clock size={10} className="inline mr-1" />{service.durationMinutes}min
-                            </p>
+                            <div className="flex items-center gap-3 mt-1">
+                                <p className="text-[10px] text-text-secondary flex items-center gap-1">
+                                    <Clock size={10} /> {service.durationMinutes}min
+                                </p>
+                                <p className="text-[10px] text-accent flex items-center gap-1">
+                                    <User size={10} /> {barbers.find(b => b.id === service.barberId)?.name || 'Sem barbeiro'}
+                                </p>
+                            </div>
                         </div>
                         <span className="font-mono font-semibold text-accent text-sm">{formatPrice(service.price)}</span>
                         <div className="flex items-center gap-1">
@@ -141,7 +155,20 @@ export function ServicesPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium mb-1 block">Descrição</label>
+                                    <label className="text-xs font-medium mb-1 block uppercase tracking-wider text-text-secondary">Barbeiro Responsável</label>
+                                    <select
+                                        value={editing.barberId}
+                                        onChange={(e) => setEditing({ ...editing, barberId: parseInt(e.target.value, 10) })}
+                                        className="w-full bg-bg-input input-surface border border-border rounded-xl px-3 py-2.5 text-sm focus:border-accent outline-none transition"
+                                    >
+                                        <option value={0}>Selecione um barbeiro...</option>
+                                        {barbers.map(b => (
+                                            <option key={b.id} value={b.id}>{b.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium mb-1 block uppercase tracking-wider text-text-secondary">Descrição (opcional)</label>
                                     <input
                                         value={editing.description}
                                         onChange={(e) => setEditing({ ...editing, description: e.target.value })}
@@ -152,19 +179,20 @@ export function ServicesPage() {
                                     <div>
                                         <label className="text-xs font-medium mb-1 block">Duração (min)</label>
                                         <input
-                                            type="number"
+                                            type="text"
+                                            inputMode="numeric"
                                             value={editing.durationMinutes}
-                                            onChange={(e) => setEditing({ ...editing, durationMinutes: parseInt(e.target.value, 10) || 0 })}
+                                            onChange={(e) => setEditing({ ...editing, durationMinutes: parseInt(onlyNumbers(e.target.value), 10) || 0 })}
                                             className="w-full bg-bg-input input-surface border border-border rounded-xl px-3 py-2.5 text-sm font-mono focus:border-accent outline-none transition"
                                         />
                                     </div>
                                     <div>
                                         <label className="text-xs font-medium mb-1 block">Preço (R$)</label>
                                         <input
-                                            type="number"
-                                            step="0.01"
-                                            value={editing.price}
-                                            onChange={(e) => setEditing({ ...editing, price: parseFloat(e.target.value) || 0 })}
+                                            type="text"
+                                            inputMode="decimal"
+                                            value={maskCurrency(editing.price)}
+                                            onChange={(e) => setEditing({ ...editing, price: parseCurrencyToNumber(e.target.value) })}
                                             className="w-full bg-bg-input input-surface border border-border rounded-xl px-3 py-2.5 text-sm font-mono focus:border-accent outline-none transition"
                                         />
                                     </div>

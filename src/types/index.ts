@@ -65,7 +65,7 @@ export interface Appointment {
     date: string;
     startTime: LocalTime;
     endTime: LocalTime;
-    status: 'AGENDADO' | 'CANCELADO_POR_CLIENTE' | 'CANCELADO_POR_BARBEIRO' | 'CONCLUIDO' | 'PROPOSTA_REAGENDAMENTO';
+    status: 'AGENDADO' | 'CANCELADO_POR_CLIENTE' | 'CANCELADO_POR_BARBEIRO' | 'CONCLUIDO' | 'PROPOSTA_REAGENDAMENTO' | 'FINALIZADO';
     observation: string;
     barberMessage: string;
     proposedDate: string | null;

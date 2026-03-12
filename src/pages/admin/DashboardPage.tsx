@@ -1,39 +1,74 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, DollarSign, Users, Clock, Scissors } from 'lucide-react';
-import { getAppointments } from '@/services/api';
+import { Calendar, DollarSign, Users, Clock, CheckCircle2, History } from 'lucide-react';
+import { getAppointments, finalizeAppointment, proposeReschedule } from '@/services/api';
 import type { Appointment } from '@/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useToastStore } from '@/stores/useToastStore';
+import { RescheduleProposalModal } from '@/components/modals/RescheduleProposalModal';
 
 export function DashboardPage() {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [loading, setLoading] = useState(true);
+    const [proposeTarget, setProposeTarget] = useState<Appointment | null>(null);
+    const addToast = useToastStore((s) => s.addToast);
 
     useEffect(() => {
-        getAppointments().then((data) => {
-            setAppointments(data);
-            setLoading(false);
-        });
+        fetchData();
     }, []);
 
+    const fetchData = async () => {
+        try {
+            const data = await getAppointments();
+            setAppointments(data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleFinalize = async (id: number) => {
+        try {
+            await finalizeAppointment(id);
+            addToast('success', 'Atendimento finalizado com sucesso!');
+            fetchData();
+        } catch (error) {
+            addToast('error', 'Erro ao finalizar atendimento.');
+        }
+    };
+
+    const handleConfirmPropose = async (data: any) => {
+        if (!proposeTarget) return;
+        try {
+            await proposeReschedule(proposeTarget.id, data);
+            fetchData();
+        } catch (error) {
+            throw error;
+        }
+    };
+
     const today = new Date();
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const todayStr = format(today, 'yyyy-MM-dd');
 
     const fmtTime = (h: number, m: number) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 
-    const todayAppointments = appointments.filter((a) => a.date === todayStr && a.status !== 'CANCELADO_POR_CLIENTE' && a.status !== 'CANCELADO_POR_BARBEIRO');
-    const todayRevenue = todayAppointments.reduce((sum, a) => sum + 0, 0); // Backend OAS has no price
+    const todayAppointments = appointments.filter((a) => a.date === todayStr && !a.status.startsWith('CANCELADO'));
+    const todayRevenue = todayAppointments
+        .filter(a => a.status === 'FINALIZADO' || a.status === 'CONCLUIDO')
+        .reduce((sum, a) => sum + (a.totalPrice || 0), 0);
+    
     const nextApt = todayAppointments
-        .filter((a) => fmtTime(a.startTime.hour, a.startTime.minute) >= format(today, 'HH:mm'))
+        .filter((a) => a.status === 'AGENDADO' && fmtTime(a.startTime.hour, a.startTime.minute) >= format(today, 'HH:mm'))
         .sort((a, b) => fmtTime(a.startTime.hour, a.startTime.minute).localeCompare(fmtTime(b.startTime.hour, b.startTime.minute)))[0];
 
     const formatPrice = (p: number) => p.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
     const stats = [
         { label: 'Hoje', value: todayAppointments.length.toString(), icon: Calendar, color: 'text-info bg-info/10' },
-        { label: 'Receita', value: formatPrice(0), icon: DollarSign, color: 'text-success bg-success/10' },
-        { label: 'Concluídos', value: appointments.filter((a) => a.date === todayStr && a.status === 'CONCLUIDO').length.toString(), icon: Users, color: 'text-accent bg-accent/10' },
+        { label: 'Receita Hoje', value: formatPrice(todayRevenue), icon: DollarSign, color: 'text-success bg-success/10' },
+        { label: 'Concluídos', value: todayAppointments.filter((a) => a.status === 'FINALIZADO' || a.status === 'CONCLUIDO').length.toString(), icon: Users, color: 'text-accent bg-accent/10' },
         { label: 'Próximo', value: nextApt ? fmtTime(nextApt.startTime.hour, nextApt.startTime.minute) : '--:--', icon: Clock, color: 'text-warning bg-warning/10' },
     ];
 
@@ -52,11 +87,13 @@ export function DashboardPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="font-heading text-2xl font-bold mb-1">Dashboard</h1>
-                <p className="text-text-secondary text-sm capitalize">
-                    {format(today, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                </p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="font-heading text-2xl font-bold mb-1">Dashboard</h1>
+                    <p className="text-text-secondary text-sm capitalize">
+                        {format(today, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                    </p>
+                </div>
             </div>
 
             {/* Stats cards */}
@@ -95,7 +132,7 @@ export function DashboardPage() {
                             .map((apt) => (
                                 <div
                                     key={apt.id}
-                                    className="flex items-center gap-4 p-3 rounded-xl bg-bg-input hover:bg-accent/5 transition"
+                                    className="flex items-center gap-4 p-3 rounded-xl bg-bg-input hover:bg-accent/5 transition group"
                                 >
                                     <span className="font-mono font-semibold text-accent text-sm w-14">{fmtTime(apt.startTime.hour, apt.startTime.minute)}</span>
                                     <div className="flex-1 min-w-0">
@@ -104,13 +141,48 @@ export function DashboardPage() {
                                             {apt.services?.map(s => s.name).join(', ') || 'Nenhum serviço'}
                                         </p>
                                     </div>
-                                    <span className="text-xs text-text-secondary">{apt.barberName.split(' ')[0]}</span>
-                                    <span className="font-mono text-sm text-accent"></span>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-xs text-text-secondary hidden sm:inline">{apt.barberName.split(' ')[0]}</span>
+                                        {apt.status === 'AGENDADO' ? (
+                                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
+                                                <button 
+                                                    onClick={() => setProposeTarget(apt)}
+                                                    className="bg-bg-card border border-border text-text-primary p-1.5 rounded-lg hover:bg-white/5 transition flex items-center gap-1.5 text-xs"
+                                                    title="Propor Reagendamento"
+                                                >
+                                                    <History size={14} className="text-accent" />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleFinalize(apt.id)}
+                                                    className="bg-success text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-success/20"
+                                                >
+                                                    <CheckCircle2 size={14} />
+                                                    Finalizar
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <span className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1 ${apt.status === 'FINALIZADO' || apt.status === 'CONCLUIDO' ? 'text-success' : 'text-warning'}`}>
+                                                {apt.status === 'FINALIZADO' || apt.status === 'CONCLUIDO' ? <CheckCircle2 size={12} /> : <History size={12} />}
+                                                {apt.status === 'PROPOSTA_REAGENDAMENTO' ? 'Aguardando Cliente' : apt.status}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                     </div>
                 )}
             </div>
+
+            {proposeTarget && (
+                <RescheduleProposalModal
+                    isOpen={!!proposeTarget}
+                    onClose={() => setProposeTarget(null)}
+                    onConfirm={handleConfirmPropose}
+                    appointmentDate={proposeTarget.date}
+                    appointmentTime={fmtTime(proposeTarget.startTime.hour, proposeTarget.startTime.minute)}
+                    clientName={proposeTarget.clientName}
+                />
+            )}
         </div>
     );
 }

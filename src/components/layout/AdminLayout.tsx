@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
     LayoutDashboard, Calendar, Scissors, Clock, BarChart3,
     Settings, LogOut, Menu, X, ChevronLeft, ChevronRight,
-    HelpCircle, User,
+    HelpCircle, User, Users,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -16,6 +16,8 @@ const NAV_MAIN = [
     { path: '/admin/dashboard', label: TEXT.admin.dashboard, icon: LayoutDashboard },
     { path: '/admin/agenda', label: TEXT.admin.agenda, icon: Calendar },
     { path: '/admin/servicos', label: TEXT.admin.services, icon: Scissors },
+    { path: '/admin/barbeiros', label: TEXT.admin.barbers, icon: Scissors },
+    { path: '/admin/clientes', label: TEXT.admin.clients, icon: Users },
     { path: '/admin/historico', label: TEXT.admin.history, icon: BarChart3 },
     { path: '/admin/horarios', label: TEXT.admin.workHours, icon: Clock },
 ] as const;

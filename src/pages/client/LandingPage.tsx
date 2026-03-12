@@ -203,15 +203,6 @@ export function LandingPage() {
                     </motion.div>
                 </motion.div>
 
-                {/* Scroll indicator */}
-                <motion.div
-                    className="landing-scroll-indicator"
-                    animate={{ y: [0, 10, 0] }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                    <div className="landing-scroll-line" />
-                    <span>Role para baixo</span>
-                </motion.div>
             </section>
 
             {/* ═══════════ BARBEIROS ═══════════ */}

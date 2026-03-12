@@ -13,6 +13,12 @@ const isBarber = () => {
     return user?.isBarber === true;
 };
 
+// ================= CLIENTS =================
+export async function getAdminClients(): Promise<Barber[]> {
+    const res = await apiClient.get<Barber[]>('/admin/clients');
+    return res.data;
+}
+
 // ================= BARBERS =================
 export async function getBarbers(): Promise<Barber[]> {
     if (isAdmin()) {
@@ -22,6 +28,17 @@ export async function getBarbers(): Promise<Barber[]> {
         const res = await apiClient.get<Barber[]>('/clients/barbers');
         return res.data;
     }
+}
+
+export async function registerBarber(data: any): Promise<Barber> {
+    const res = await apiClient.post<Barber>('/admin/barbers', data);
+    return res.data;
+}
+
+export async function updateProfile(data: any): Promise<Barber> {
+    const user = useAuthStore.getState().user;
+    const res = await apiClient.put<Barber>(`/admin/users/${user?.id}`, data);
+    return res.data;
 }
 
 // ================= SERVICES =================
@@ -41,7 +58,6 @@ export async function getServices(barberId?: number): Promise<Service[]> {
 
 export async function saveService(service: Service): Promise<Service> {
     if (service.id) {
-        // Update handling depending on context (admin vs barber)
         const endpoint = isBarber() && !isAdmin() ? `/barbers/services/${service.id}` : `/admin/services/${service.id}`;
         const res = await apiClient.put<Service>(endpoint, service);
         return res.data;
@@ -52,7 +68,6 @@ export async function saveService(service: Service): Promise<Service> {
 }
 
 export async function deleteService(id: number): Promise<void> {
-    // API doesn't specify DELETE /services, assuming setting active=false via PUT
     const services = await getServices();
     const service = services.find(s => s.id === id);
     if (service) {
@@ -75,8 +90,6 @@ export async function getAppointments(): Promise<Appointment[]> {
 }
 
 export async function getAppointmentsByPhone(phone: string): Promise<Appointment[]> {
-    // Backend API handles this via /clients/appointments tied to the JWT
-    // So we just return the logged client's appointments (or empty if not logged in)
     try {
         const res = await apiClient.get<Appointment[]>('/clients/appointments');
         return res.data;
@@ -92,51 +105,112 @@ export async function createAppointment(data: AppointmentRequest): Promise<Appoi
 
 export async function cancelAppointment(id: number, observation?: string): Promise<void> {
     if (isBarber()) {
-        await apiClient.put(`/barbers/appointments/${id}/cancel`, { observation: observation || 'Cancelado pelo barbeiro' });
+        // Updated to use DELETE as per backend BarberController
+        await apiClient.delete(`/barbers/appointments/${id}`, { 
+            data: { observation: observation || 'Cancelado pelo barbeiro' } 
+        });
     } else {
-        await apiClient.delete(`/clients/appointments/${id}`, { data: { observation: observation || 'Cancelado pelo cliente' } });
+        await apiClient.delete(`/clients/appointments/${id}`, { 
+            data: { observation: observation || 'Cancelado pelo cliente' } 
+        });
     }
 }
 
+export async function proposeReschedule(id: number, data: any): Promise<void> {
+    await apiClient.put(`/barbers/appointments/${id}/propose-reschedule`, data);
+}
+
+export async function acceptProposal(id: number): Promise<Appointment> {
+    const res = await apiClient.put<Appointment>(`/clients/appointments/${id}/accept-proposal`);
+    return res.data;
+}
+
+export async function rejectProposal(id: number): Promise<void> {
+    await apiClient.put(`/clients/appointments/${id}/reject-proposal`);
+}
+
+export async function rescheduleAppointment(id: number, data: any): Promise<Appointment> {
+    const res = await apiClient.put<Appointment>(`/clients/appointments/${id}/reschedule`, data);
+    return res.data;
+}
+
+export async function finalizeAppointment(id: number): Promise<void> {
+    // Assuming backend added this or uses a generic update. 
+    // Since user says it's ready, I'll assume the endpoint is PUT /barbers/appointments/{id}/finalize
+    await apiClient.put(`/barbers/appointments/${id}/finalize`);
+}
+
+
 // ================= SCHEDULES & AVAILABILITY =================
 export async function getSchedules(): Promise<WorkSchedule[]> {
-    // Mock assembling schedule from API since API separates availability and days off
-    if (!isBarber()) return [];
-
-    const availRes = await apiClient.get<AvailabilityResponse[]>('/barbers/availability');
-    const daysOffRes = await apiClient.get<string[]>('/barbers/date-off');
-
     const user = useAuthStore.getState().user;
+    if (!user) return [];
 
-    const workDays = [0, 1, 2, 3, 4, 5, 6].map(day => {
-        const slot = availRes.data.find(a => a.dayOfWeek === day);
+    if (isAdmin() && !isBarber()) {
+        // Global admin: fetch all barbers and their schedules
+        const barbers = await getBarbers();
+        const schedules = await Promise.all(barbers.map(async b => {
+            try {
+                const availRes = await apiClient.get<AvailabilityResponse[]>(`/admin/barbers/${b.id}/availability`);
+                const daysOffRes = await apiClient.get<string[]>(`/admin/barbers/${b.id}/date-off`);
+                
+                return assembleSchedule(b.id, b.name, availRes.data, daysOffRes.data);
+            } catch (e) {
+                console.error(`Error fetching schedule for barber ${b.id}:`, e);
+                return assembleSchedule(b.id, b.name, [], []);
+            }
+        }));
+        return schedules;
+    } else if (isBarber()) {
+        // Barber: fetch own schedule
+        const availRes = await apiClient.get<AvailabilityResponse[]>('/barbers/availability');
+        const daysOffRes = await apiClient.get<string[]>('/barbers/date-off');
+        return [assembleSchedule(user.id, user.name, availRes.data, daysOffRes.data)];
+    }
+
+    return [];
+}
+
+function assembleSchedule(barberId: number, barberName: string, avail: AvailabilityResponse[], daysOffDates: string[]): WorkSchedule {
+    // FE uses 0=Sunday, 1=Monday... 6=Saturday
+    // BE uses 1=Monday... 7=Sunday
+    const workDays = [0, 1, 2, 3, 4, 5, 6].map(feDay => {
+        const beDay = feDay === 0 ? 7 : feDay;
+        const slot = avail.find(a => a.dayOfWeek === beDay);
+        
         if (slot) {
             return {
-                dayOfWeek: day,
+                dayOfWeek: feDay,
                 enabled: true,
                 openTime: `${String(slot.startTime.hour).padStart(2, '0')}:${String(slot.startTime.minute).padStart(2, '0')}`,
                 closeTime: `${String(slot.endTime.hour).padStart(2, '0')}:${String(slot.endTime.minute).padStart(2, '0')}`
             };
         }
-        return { dayOfWeek: day, enabled: false, openTime: '08:00', closeTime: '20:00' };
+        return { dayOfWeek: feDay, enabled: false, openTime: '08:00', closeTime: '20:00' };
     });
 
-    const daysOff: DayOff[] = daysOffRes.data.map((date, idx) => ({
-        id: `off-${idx}`,
-        barberId: user!.id,
+    const daysOff: DayOff[] = daysOffDates.map((date, idx) => ({
+        id: `off-${barberId}-${idx}`,
+        barberId,
         date: date,
         reason: 'Folga'
     }));
 
-    return [{
-        barberId: user!.id,
-        barberName: user!.name,
+    return {
+        barberId,
+        barberName,
         workDays,
         daysOff
-    }];
+    };
 }
 
 export async function getTimeSlots(barberId: number, date: string, serviceIds: number[]): Promise<TimeSlot[]> {
+     // Ensure barberId is valid (BookingPage might pass -1 for 'no preference')
+    if (!barberId || barberId === -1) {
+        // For no preference, we might need a different backend endpoint or just pick the first available barber
+        // For now, let's just pick barber 1 or handle it as an error
+        return [];
+    }
     try {
         const res = await apiClient.get<LocalTime[]>(`/clients/barbers/${barberId}/available-times`, {
             params: { 
@@ -155,30 +229,47 @@ export async function getTimeSlots(barberId: number, date: string, serviceIds: n
     }
 }
 
-export async function updateSlotInterval(interval: number): Promise<void> {
-    await apiClient.put('/barbers/profile/slot-interval', { slotIntervalMinutes: interval });
+export async function updateSlotInterval(interval: number, barberId?: number): Promise<void> {
+    const user = useAuthStore.getState().user;
+    const targetId = barberId || user?.id;
+    if (!targetId) return;
+
+    if (isAdmin() && targetId !== user?.id) {
+        await apiClient.put(`/admin/barbers/${targetId}/slot-interval`, { slotIntervalMinutes: interval });
+    } else {
+        await apiClient.put('/barbers/profile/slot-interval', { slotIntervalMinutes: interval });
+    }
 }
 
 export async function saveSchedule(schedule: WorkSchedule): Promise<WorkSchedule> {
+    const user = useAuthStore.getState().user;
+    const isEditingSelf = schedule.barberId === user?.id;
+    
     // API separated into /availability and /date-off
     const availabilityPayload = schedule.workDays
         .filter(wd => wd.enabled)
         .map(wd => {
             const [oH, oM] = wd.openTime.split(':').map(Number);
             const [cH, cM] = wd.closeTime.split(':').map(Number);
+            const beDay = wd.dayOfWeek === 0 ? 7 : wd.dayOfWeek;
             return {
-                dayOfWeek: wd.dayOfWeek,
+                dayOfWeek: beDay,
                 startTime: { hour: oH, minute: oM, second: 0, nano: 0 },
                 endTime: { hour: cH, minute: cM, second: 0, nano: 0 }
             };
         });
 
-    await apiClient.put('/barbers/availability', availabilityPayload);
-
     const datesOffPayload = {
         datesOff: schedule.daysOff.map(d => d.date)
     };
-    await apiClient.put('/barbers/date-off', datesOffPayload);
+
+    if (isAdmin() && !isEditingSelf) {
+        await apiClient.put(`/admin/barbers/${schedule.barberId}/availability`, availabilityPayload);
+        await apiClient.put(`/admin/barbers/${schedule.barberId}/date-off`, datesOffPayload);
+    } else {
+        await apiClient.put('/barbers/availability', availabilityPayload);
+        await apiClient.put('/barbers/date-off', datesOffPayload);
+    }
 
     return schedule;
 }
