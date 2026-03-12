@@ -23,14 +23,22 @@ pipeline {
         stage('Determine Environment') {
             steps {
                 script {
-                    if (env.BRANCH_NAME == 'main' || env.BRANCH_NAME == 'master') {
+                    String branch = env.BRANCH_NAME ?: env.GIT_BRANCH ?: ""
+                    
+                    if (branch.contains('/')) {
+                        branch = branch.split('/')[-1]
+                    }
+
+                    echo "Detected branch: ${branch}"
+
+                    if (branch == 'main') {
                         env.DEPLOY_ENV = 'prod'
-                        env.BUILD_CMD = 'npm run build' // Uses .env.production by default usually
-                    } else if (env.BRANCH_NAME == 'develop' || env.BRANCH_NAME == 'staging' || env.BRANCH_NAME == 'hml') {
+                        env.BUILD_CMD = 'npm run build'
+                    } else if (branch == 'hml' || branch == 'develop' || branch == 'staging') {
                         env.DEPLOY_ENV = 'hml'
-                        env.BUILD_CMD = 'npm run build -- --mode staging' // Adjust based on your scripts
+                        env.BUILD_CMD = 'npm run build -- --mode staging'
                     } else {
-                        error "Branch ${env.BRANCH_NAME} is not configured for deployment."
+                        error "Branch '${branch}' is not configured for deployment."
                     }
                 }
             }
