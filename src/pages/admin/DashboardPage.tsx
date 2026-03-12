@@ -101,7 +101,7 @@ export function DashboardPage() {
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-medium truncate">{apt.clientName}</p>
                                         <p className="text-xs text-text-secondary truncate">
-                                            {apt.serviceName}
+                                            {apt.services?.map(s => s.name).join(', ') || 'Nenhum serviço'}
                                         </p>
                                     </div>
                                     <span className="text-xs text-text-secondary">{apt.barberName.split(' ')[0]}</span>

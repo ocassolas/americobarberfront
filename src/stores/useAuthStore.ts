@@ -30,6 +30,7 @@ export const useAuthStore = create<AuthStore>()(
                     isBarber: data.isBarber,
                     createdAt: new Date().toISOString(),
                     assignedBarberId: null,
+                    slotIntervalMinutes: 30, // Default value
                 }
             }),
             logout: () => set({ isAuthenticated: false, token: null, user: null }),
