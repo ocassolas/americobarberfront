@@ -168,7 +168,7 @@ export function HistoryPage() {
                             {filtered.map((apt) => (
                                 <tr key={apt.id} className="border-b border-border/50 hover:bg-white/[0.02] transition">
                                     <td className="px-4 py-3 font-mono text-xs">{formatDate(apt.date)}</td>
-                                    <td className="px-4 py-3 font-mono text-xs">{fmtTime(apt.startTime.hour, apt.startTime.minute)}</td>
+                                    <td className="px-4 py-3 font-mono text-xs">{apt.startTime}</td>
                                     <td className="px-4 py-3 text-xs hidden md:table-cell">{apt.clientName}</td>
                                     <td className="px-4 py-3 text-xs hidden md:table-cell">{apt.barberName}</td>
                                     <td className="px-4 py-3 font-mono text-xs text-accent">{formatPrice(apt.totalPrice)}</td>

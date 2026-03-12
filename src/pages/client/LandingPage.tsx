@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import {
     MapPin, Phone, Star, Scissors, PenTool, Sparkles,
-    Eye, Palette, Droplets, ChevronRight, Calendar, Instagram, MessageCircle,
+    Eye, Palette, Droplets, ChevronRight, Calendar, Instagram, MessageCircle, Clock,
     ArrowRight, LogIn, User as UserIcon
 } from 'lucide-react';
 import { getBarbers, getServices } from '@/services/api';
