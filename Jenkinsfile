@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        VPS_USER = "jenkins"
+        VPS_USER = "jgrando"
         VPS_IP = "72.61.47.148"
         SSH_CREDENTIALS_ID = "vps-ssh-key"
     }
