@@ -44,6 +44,21 @@ pipeline {
             }
         }
 
+        stage('Generate Environment File') {
+            steps {
+                script {
+                    String apiUrl = (env.DEPLOY_ENV == 'prod') 
+                        ? 'https://api.americobarber.zynexium.com/api' 
+                        : 'https://api-hml.americobarber.zynexium.com/api'
+                    
+                    String fileName = (env.DEPLOY_ENV == 'prod') ? '.env.production' : '.env.staging'
+                    
+                    sh "echo 'VITE_API_URL=${apiUrl}' > ${fileName}"
+                    echo "Generated ${fileName} with API URL: ${apiUrl}"
+                }
+            }
+        }
+
         stage('Build Frontend') {
             steps {
                 sh "${env.BUILD_CMD}"
