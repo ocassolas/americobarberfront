@@ -3,6 +3,7 @@ import { ClientHeader } from './ClientHeader';
 import { ClientFooter } from './ClientFooter';
 import { ToastContainer } from '@/components/shared/ToastContainer';
 import { PageTransition } from '@/components/shared/PageTransition';
+import { FloatingBookingButton } from '@/components/shared/FloatingBookingButton';
 
 export function ClientLayout() {
     return (
@@ -14,6 +15,7 @@ export function ClientLayout() {
                 </PageTransition>
             </main>
             <ClientFooter />
+            <FloatingBookingButton />
             <ToastContainer />
         </div>
     );

@@ -434,7 +434,7 @@ body.light .admin-sidebar-header {
 }
 
 .landing-hero-logo {
-  width: 220px;
+  width: 280px;
   height: auto;
   margin-bottom: 28px;
   filter: drop-shadow(0 4px 20px rgba(212, 168, 83, 0.2));
@@ -443,7 +443,7 @@ body.light .admin-sidebar-header {
 
 @media (min-width: 768px) {
   .landing-hero-logo {
-    width: 300px;
+    width: 400px;
     margin-bottom: 32px;
   }
 }

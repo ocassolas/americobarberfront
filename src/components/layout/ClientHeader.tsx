@@ -46,7 +46,7 @@ export function ClientHeader() {
                     <img
                         src="/logo.png"
                         alt={BUSINESS.name}
-                        className="h-10 w-auto object-contain transition-transform group-hover:scale-105"
+                        className="h-12 w-auto object-contain transition-transform group-hover:scale-105"
                     />
                 </Link>
 
