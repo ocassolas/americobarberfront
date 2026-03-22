@@ -28,6 +28,7 @@ export interface LoginResponse {
     email: string;
     role: string;
     isBarber: boolean;
+    profilePicture?: string;
 }
 
 export interface Barber extends UserResponse {
