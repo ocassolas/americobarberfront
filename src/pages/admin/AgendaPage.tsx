@@ -186,6 +186,13 @@ export function AgendaPage() {
                                         <span className={`font-mono font-semibold w-14 text-sm ${apt.status === 'FINALIZADO' ? 'text-success' : 'text-accent'}`}>
                                             {parseTime(apt.startTime).str}
                                         </span>
+                                        <div className="w-10 h-10 rounded-full overflow-hidden bg-bg-card border border-border/50 flex-shrink-0 flex items-center justify-center">
+                                            {apt.clientProfilePicture ? (
+                                                <img src={apt.clientProfilePicture} alt={apt.clientName} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <User size={18} className="text-text-disabled" />
+                                            )}
+                                        </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-medium">{apt.clientName || 'Cliente'}</p>
                                             <div className="flex gap-1 flex-wrap mt-0.5">
@@ -216,10 +223,20 @@ export function AgendaPage() {
                         className="bg-bg-card border border-border rounded-2xl p-6 max-w-sm w-full"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <h3 className="font-heading font-semibold text-lg mb-4">Detalhes do Agendamento</h3>
+                        <div className="flex flex-col items-center mb-6">
+                            <div className="w-20 h-20 rounded-full overflow-hidden bg-bg-input border-2 border-accent/20 mb-3 flex items-center justify-center">
+                                {selected.clientProfilePicture ? (
+                                    <img src={selected.clientProfilePicture} alt={selected.clientName} className="w-full h-full object-cover" />
+                                ) : (
+                                    <User size={32} className="text-text-disabled" />
+                                )}
+                            </div>
+                            <h3 className="font-heading font-semibold text-lg">{selected.clientName || 'Cliente'}</h3>
+                            <p className="text-xs text-text-secondary">{selected.clientPhone}</p>
+                        </div>
+
                         <div className="space-y-3 text-sm">
                             <div className="flex justify-between"><span className="text-text-secondary">Status</span><span className={`font-bold ${selected.status === 'FINALIZADO' ? 'text-success' : 'text-accent'}`}>{selected.status}</span></div>
-                            <div className="flex justify-between"><span className="text-text-secondary">Cliente</span><span>{selected.clientName || 'Cliente'}</span></div>
                             <div className="flex justify-between"><span className="text-text-secondary">Barbeiro</span><span>{selected.barberName || 'N/A'}</span></div>
                             <div className="flex justify-between"><span className="text-text-secondary">Horário</span><span className="font-mono">{parseTime(selected.startTime).str}</span></div>
                             <div className="flex justify-between"><span className="text-text-secondary">Total</span><span className="font-mono text-accent font-bold">{formatPrice(selected.totalPrice)}</span></div>

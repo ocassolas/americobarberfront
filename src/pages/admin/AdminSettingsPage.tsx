@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Building, Phone, MapPin, Save, User, Mail } from 'lucide-react';
+import { Building, Phone, MapPin, Save, User, Mail, Camera } from 'lucide-react';
 import { useToastStore } from '@/stores/useToastStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { BUSINESS } from '@/config/constants';
@@ -13,19 +13,35 @@ export function AdminSettingsPage() {
     const [name, setName] = useState(user?.name || '');
     const [email, setEmail] = useState(user?.email || '');
     const [phone, setPhone] = useState(user?.phone || '');
+    const [profilePicture, setProfilePicture] = useState(user?.profilePicture || '');
     const [saving, setSaving] = useState(false);
     const addToast = useToastStore((s) => s.addToast);
 
     const handleSave = async () => {
         setSaving(true);
         try {
-            const updated = await updateProfile({ name, email, phone });
+            const updated = await updateProfile({ name, email, phone, profilePicture });
             setUser(updated);
             addToast('success', 'Perfil atualizado com sucesso!');
         } catch (error) {
             addToast('error', 'Erro ao atualizar perfil.');
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                addToast('error', 'A imagem deve ter no máximo 2MB.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setProfilePicture(reader.result as string);
+            };
+            reader.readAsDataURL(file);
         }
     };
 
@@ -38,6 +54,28 @@ export function AdminSettingsPage() {
                     <User size={20} className="text-accent" />
                     Meus Dados
                 </h2>
+
+                <div className="flex flex-col items-center mb-8">
+                    <div className="relative group cursor-pointer mb-4">
+                        <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-bg-card ring-2 ring-accent/20 bg-bg-input flex items-center justify-center">
+                            {profilePicture ? (
+                                <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                            ) : (
+                                <User size={48} className="text-text-disabled" />
+                            )}
+                        </div>
+                        <label className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                            <Camera size={24} className="text-white mb-1" />
+                            <span className="text-xs font-semibold text-white">Alterar Foto</span>
+                            <input 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden" 
+                                onChange={handleFileChange}
+                            />
+                        </label>
+                    </div>
+                </div>
 
                 <div className="space-y-4">
                     <div>

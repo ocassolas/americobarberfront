@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { ToastContainer } from '@/components/shared/ToastContainer';
+import { LoadingBar } from '@/components/shared/LoadingBar';
 import { PageTransition } from '@/components/shared/PageTransition';
 import { BUSINESS, TEXT } from '@/config/constants';
 
@@ -31,7 +32,7 @@ export function AdminLayout() {
     const [collapsed, setCollapsed] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
-    const logout = useAuthStore((s) => s.logout);
+    const { user, logout } = useAuthStore();
 
     const handleLogout = () => {
         logout();
@@ -160,8 +161,12 @@ export function AdminLayout() {
 
                     {/* User avatar */}
                     <div className={`admin-sidebar-user ${collapsed ? 'justify-center' : ''}`}>
-                        <div className="admin-sidebar-avatar">
-                            <User size={16} strokeWidth={1.8} />
+                        <div className="admin-sidebar-avatar overflow-hidden">
+                            {user?.profilePicture ? (
+                                <img src={user.profilePicture} alt="Avatar" className="w-full h-full object-cover" />
+                            ) : (
+                                <User size={16} strokeWidth={1.8} />
+                            )}
                         </div>
                         {!collapsed && (
                             <div className="flex flex-col">
@@ -301,12 +306,11 @@ export function AdminLayout() {
                 </header>
                 <main className="flex-1 p-4 md:p-6 lg:p-8">
                     <div className="max-w-7xl mx-auto w-full">
-                        <PageTransition>
-                            <Outlet />
-                        </PageTransition>
+                        <Outlet />
                     </div>
                 </main>
             </div>
+            <LoadingBar />
             <ToastContainer />
         </div>
     );

@@ -31,9 +31,9 @@ export function ClientLoginPage() {
             login(response.data);
             addToast('success', 'Bem-vindo(a) de volta!');
             
-            // If it's a client, redirect to my appointments or booking
+            // If it's a client, redirect to landing page
             if (response.data.role === 'ROLE_CLIENT') {
-                navigate('/meus-agendamentos');
+                navigate('/');
             } else {
                 // If an admin logs in through here by mistake, still let them in
                 navigate('/admin/dashboard');

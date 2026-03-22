@@ -213,8 +213,12 @@ export function LandingPage() {
                         {barbers.map((barber) => (
                             <motion.div key={barber.id} variants={staggerChild} className="landing-barber-card group">
                                 <div className="landing-barber-avatar-wrapper">
-                                    <div className="landing-barber-avatar">
-                                        <span>{barber.name.charAt(0)}</span>
+                                    <div className="landing-barber-avatar overflow-hidden">
+                                        {barber.profilePicture ? (
+                                            <img src={barber.profilePicture} alt={barber.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <span>{barber.name.charAt(0)}</span>
+                                        )}
                                     </div>
                                     <div className="landing-barber-avatar-ring" />
                                 </div>

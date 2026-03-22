@@ -223,29 +223,20 @@ export function BookingPage() {
                             </button>
                         )}
                         {store.step === 5 && (
-                            <div className="flex gap-3 w-full">
-                                <button
-                                    onClick={goPrev}
-                                    className="flex items-center gap-2 px-5 py-3 rounded-xl border border-border text-text-secondary hover:bg-white/5 transition text-sm font-medium"
-                                >
-                                    <ChevronLeft size={16} />
-                                    {TEXT.booking.prev}
-                                </button>
-                                <button
-                                    onClick={handleConfirm}
-                                    disabled={loading}
-                                    className="flex-1 flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover disabled:opacity-60 text-bg-primary font-semibold py-3 rounded-xl transition text-sm"
-                                >
-                                    {loading ? (
-                                        <div className="w-5 h-5 border-2 border-bg-primary/30 border-t-bg-primary rounded-full animate-spin" />
-                                    ) : (
-                                        <>
-                                            <CheckCircle size={16} />
-                                            {TEXT.booking.confirm}
-                                        </>
-                                    )}
-                                </button>
-                            </div>
+                            <button
+                                onClick={handleConfirm}
+                                disabled={loading}
+                                className="flex-1 flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover disabled:opacity-60 text-bg-primary font-semibold py-3 rounded-xl transition text-sm"
+                            >
+                                {loading ? (
+                                    <div className="w-5 h-5 border-2 border-bg-primary/30 border-t-bg-primary rounded-full animate-spin" />
+                                ) : (
+                                    <>
+                                        <CheckCircle size={16} />
+                                        {TEXT.booking.confirm}
+                                    </>
+                                )}
+                            </button>
                         )}
                     </div>
                 </div>
@@ -323,7 +314,11 @@ function StepBarber() {
                             }`}
                     >
                         <div className="w-14 h-14 rounded-full bg-accent/20 flex items-center justify-center overflow-hidden flex-shrink-0">
-                            <img src="/logo.png" alt={b.name} className="w-full h-full object-cover" />
+                            {b.profilePicture ? (
+                                <img src={b.profilePicture} alt={b.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <img src="/logo.png" alt={b.name} className="w-full h-full object-cover p-2" />
+                            )}
                         </div>
                         <div className="flex-1">
                             <h3 className="font-semibold">{b.name}</h3>

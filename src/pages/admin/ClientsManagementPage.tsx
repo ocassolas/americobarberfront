@@ -77,8 +77,12 @@ export function ClientsManagementPage() {
                             className="bg-bg-card card-surface border border-border rounded-2xl p-4 hover:border-accent/30 transition-all group"
                         >
                             <div className="flex items-center gap-4 mb-4">
-                                <div className="w-12 h-12 rounded-full bg-accent/5 flex items-center justify-center text-accent ring-2 ring-accent/10">
-                                    <User size={20} />
+                                <div className="w-12 h-12 rounded-full bg-accent/5 flex items-center justify-center text-accent ring-2 ring-accent/10 overflow-hidden">
+                                    {client.profilePicture ? (
+                                        <img src={client.profilePicture} alt={client.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <User size={20} />
+                                    )}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <h3 className="font-bold truncate">{client.name}</h3>

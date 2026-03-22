@@ -14,14 +14,30 @@ export function SettingsPage() {
     const [name, setName] = useState(user?.name || '');
     const [email, setEmail] = useState(user?.email || '');
     const [phone, setPhone] = useState(user?.phone || '');
+    const [profilePicture, setProfilePicture] = useState(user?.profilePicture || '');
     const [pushEnabled, setPushEnabled] = useState(false);
     const [loading, setLoading] = useState(false);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                addToast('error', 'Imagem muito grande. Máximo 2MB.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setProfilePicture(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const updated = await updateProfile({ name, email, phone });
+            const updated = await updateProfile({ name, email, phone, profilePicture });
             setUser(updated);
             addToast('success', 'Perfil atualizado com sucesso!');
         } catch {
@@ -41,6 +57,23 @@ export function SettingsPage() {
                         <User size={18} />
                         Seu Perfil
                     </h2>
+
+                    <div className="flex flex-col items-center gap-4 py-4">
+                        <div className="relative group">
+                            <div className="w-24 h-24 rounded-full border-2 border-accent/30 overflow-hidden bg-bg-input flex items-center justify-center">
+                                {profilePicture ? (
+                                    <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                                ) : (
+                                    <User size={40} className="text-text-disabled" />
+                                )}
+                            </div>
+                            <label className="absolute bottom-0 right-0 w-8 h-8 bg-accent text-bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-accent-hover transition-colors shadow-lg">
+                                <Save size={14} className="rotate-[-45deg]" /> {/* Usando Save como ícone de upload improvisado ou Lucide Camera se disponível */}
+                                <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                            </label>
+                        </div>
+                        <p className="text-[10px] text-text-secondary uppercase font-bold tracking-wider">Foto de Perfil</p>
+                    </div>
                     
                     <div>
                         <label className="block text-[10px] font-bold text-text-secondary uppercase mb-1.5 ml-1">Nome</label>

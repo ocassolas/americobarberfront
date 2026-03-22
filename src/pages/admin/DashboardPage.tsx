@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, DollarSign, Users, Clock, CheckCircle2, History } from 'lucide-react';
+import { Calendar, DollarSign, Users, Clock, CheckCircle2, History, User } from 'lucide-react';
 import { getAppointments, finalizeAppointment, proposeReschedule } from '@/services/api';
 import type { Appointment } from '@/types';
 import { format } from 'date-fns';
@@ -106,11 +106,8 @@ export function DashboardPage() {
             {/* Stats cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {stats.map((stat, i) => (
-                    <motion.div
+                    <div
                         key={stat.label}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1 }}
                         className="bg-bg-card card-surface border border-border rounded-2xl p-5"
                     >
                         <div className="flex items-center justify-between mb-3">
@@ -120,7 +117,7 @@ export function DashboardPage() {
                             </div>
                         </div>
                         <p className="text-2xl font-bold font-mono">{stat.value}</p>
-                    </motion.div>
+                    </div>
                 ))}
             </div>
 
@@ -142,6 +139,15 @@ export function DashboardPage() {
                                     className="flex items-center gap-4 p-3 rounded-xl bg-bg-input hover:bg-accent/5 transition group"
                                 >
                                     <span className="font-mono font-semibold text-accent text-sm w-14">{parseTime(apt.startTime).str}</span>
+                                    
+                                    <div className="w-10 h-10 rounded-full overflow-hidden bg-bg-card border border-border/50 flex-shrink-0 flex items-center justify-center">
+                                        {apt.clientProfilePicture ? (
+                                            <img src={apt.clientProfilePicture} alt={apt.clientName} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <User size={18} className="text-text-disabled" />
+                                        )}
+                                    </div>
+
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-medium truncate">{apt.clientName || 'Cliente'}</p>
                                         <p className="text-xs text-text-secondary truncate">

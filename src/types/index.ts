@@ -17,6 +17,7 @@ export interface UserResponse {
     createdAt: string;
     assignedBarberId: number | null;
     slotIntervalMinutes: number;
+    profilePicture?: string;
 }
 
 export interface LoginResponse {
@@ -74,6 +75,7 @@ export interface Appointment {
     clientPhone: string;
     barberPhone: string;
     createdAt: string;
+    clientProfilePicture?: string;
 }
 
 export interface AppointmentRequest {

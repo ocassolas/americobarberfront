@@ -36,8 +36,7 @@ export async function registerBarber(data: any): Promise<Barber> {
 }
 
 export async function updateProfile(data: any): Promise<Barber> {
-    const user = useAuthStore.getState().user;
-    const res = await apiClient.put<Barber>(`/admin/users/${user?.id}`, data);
+    const res = await apiClient.put<Barber>(`/clients/profile`, data);
     return res.data;
 }
 
