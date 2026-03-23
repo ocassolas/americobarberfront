@@ -164,5 +164,6 @@ export interface BookingState {
     time: string | null;
     clientName: string;
     clientPhone: string;
+    clientCpf: string;
     notes: string;
 }

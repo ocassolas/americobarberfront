@@ -16,10 +16,11 @@ export const maskPhone = (value: string) => {
 };
 
 export const maskCurrency = (value: string | number) => {
-    const cleanValue = String(value).replace(/\D/g, '');
+    const stringValue = typeof value === 'number' ? value.toFixed(2) : String(value);
+    const cleanValue = stringValue.replace(/\D/g, '');
     const options = { style: 'currency' as const, currency: 'BRL' };
     return new Intl.NumberFormat('pt-BR', options).format(
-        parseFloat(cleanValue) / 100
+        (parseFloat(cleanValue) || 0) / 100
     );
 };
 

@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Filter, BarChart3, TrendingUp } from 'lucide-react';
+import { Calendar, Filter } from 'lucide-react';
 import { getAppointments, getBarbers } from '@/services/api';
 import type { Appointment, Barber } from '@/types';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { format, subDays } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export function HistoryPage() {
@@ -33,18 +32,6 @@ export function HistoryPage() {
         .reduce((sum, a) => sum + (a.totalPrice || 0), 0);
     const formatPrice = (p: number) => p.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     const formatDate = (d: string) => { const [y, m, day] = d.split('-'); return `${day}/${m}/${y}`; };
-
-    // Chart data — last 7 days
-    const chartData = Array.from({ length: 7 }).map((_, i) => {
-        const d = subDays(new Date(), 6 - i);
-        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        const dayApts = appointments.filter((a) => a.date === dateStr && a.status !== 'CANCELADO_POR_CLIENTE' && a.status !== 'CANCELADO_POR_BARBEIRO');
-        return {
-            day: format(d, 'EEE', { locale: ptBR }),
-            agendamentos: dayApts.length,
-            receita: dayApts.reduce((sum, a) => sum + (a.totalPrice || 0), 0),
-        };
-    });
 
     const STATUS_MAP: Record<string, { label: string; color: string }> = {
         AGENDADO: { label: 'Confirmado', color: 'bg-success/15 text-success' },
@@ -110,45 +97,7 @@ export function HistoryPage() {
                 </div>
             </div>
 
-            {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="bg-bg-card card-surface border border-border rounded-2xl p-5">
-                    <h3 className="font-heading font-semibold text-sm mb-4 flex items-center gap-2">
-                        <BarChart3 size={16} className="text-accent" />
-                        Agendamentos (7 dias)
-                    </h3>
-                    <ResponsiveContainer width="100%" height={200}>
-                        <BarChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
-                            <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#A0A0A0' }} />
-                            <YAxis tick={{ fontSize: 12, fill: '#A0A0A0' }} allowDecimals={false} />
-                            <Tooltip
-                                contentStyle={{ backgroundColor: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 12, fontSize: 12 }}
-                                labelStyle={{ color: '#F5F5F5' }}
-                            />
-                            <Bar dataKey="agendamentos" fill="#D4A853" radius={[6, 6, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-                <div className="bg-bg-card card-surface border border-border rounded-2xl p-5">
-                    <h3 className="font-heading font-semibold text-sm mb-4 flex items-center gap-2">
-                        <TrendingUp size={16} className="text-accent" />
-                        Receita (7 dias)
-                    </h3>
-                    <ResponsiveContainer width="100%" height={200}>
-                        <LineChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
-                            <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#A0A0A0' }} />
-                            <YAxis tick={{ fontSize: 12, fill: '#A0A0A0' }} />
-                            <Tooltip
-                                contentStyle={{ backgroundColor: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 12, fontSize: 12 }}
-                                formatter={(val) => formatPrice(Number(val))}
-                            />
-                            <Line type="monotone" dataKey="receita" stroke="#D4A853" strokeWidth={2} dot={{ fill: '#D4A853' }} />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </div>
-            </div>
+
 
             {/* Appointment list */}
             <div className="bg-bg-card card-surface border border-border rounded-2xl overflow-hidden">

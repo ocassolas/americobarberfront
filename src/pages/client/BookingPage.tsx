@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Check, ChevronLeft, ChevronRight, Scissors, Star, Dices,
     Clock, Sun, CloudSun, Moon, Calendar, User, Phone, FileText,
-    PenTool, Sparkles, Eye, Palette, Droplets, CheckCircle,
+    PenTool, Sparkles, Eye, Palette, Droplets, CheckCircle, CreditCard,
 } from 'lucide-react';
 import { useBookingStore } from '@/stores/useBookingStore';
 import { useToastStore } from '@/stores/useToastStore';
@@ -103,6 +103,7 @@ export function BookingPage() {
         if (isAuthenticated && user) {
             if (!store.clientName) store.setClientName(user.name);
             if (!store.clientPhone && user.phone) store.setClientPhone(user.phone);
+            if (!store.clientCpf && user.cpf) store.setClientCpf(user.cpf);
         }
     }, [isAuthenticated, user, store]);
 
@@ -112,7 +113,9 @@ export function BookingPage() {
             case 1: return store.services.length > 0;
             case 2: return store.date !== null;
             case 3: return store.time !== null;
-            case 4: return store.clientName.trim().length >= 3 && /^\(\d{2}\) \d{5}-\d{4}$/.test(store.clientPhone);
+            case 4: return store.clientName.trim().length >= 3 && 
+                           /^\(\d{2}\) \d{5}-\d{4}$/.test(store.clientPhone) &&
+                           store.clientCpf.replace(/\D/g, '').length === 11;
             default: return true;
         }
     };
@@ -641,8 +644,12 @@ function StepTime() {
 /* ====================== STEP 5: INFO ====================== */
 function StepInfo() {
     const store = useBookingStore();
+    const { isAuthenticated, user } = useAuthStore();
     const [nameError, setNameError] = useState('');
     const [phoneError, setPhoneError] = useState('');
+    const [cpfError, setCpfError] = useState('');
+
+    const hasRegisteredPhone = isAuthenticated && !!user?.phone;
 
     const formatPhone = (value: string) => {
         const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -664,6 +671,25 @@ function StepInfo() {
         const digits = formatted.replace(/\D/g, '');
         if (digits.length > 0 && digits.length < 11) setPhoneError('Telefone deve ter 11 dígitos');
         else setPhoneError('');
+    };
+
+    const hasRegisteredCpf = isAuthenticated && !!user?.cpf;
+
+    const formatCpf = (value: string) => {
+        return value
+            .replace(/\D/g, '')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+            .replace(/(-\d{2})\d+?$/, '$1');
+    };
+
+    const handleCpfChange = (val: string) => {
+        const formatted = formatCpf(val);
+        store.setClientCpf(formatted);
+        const digits = formatted.replace(/\D/g, '');
+        if (digits.length > 0 && digits.length < 11) setCpfError('CPF inválido');
+        else setCpfError('');
     };
 
     return (
@@ -688,6 +714,25 @@ function StepInfo() {
 
             <div>
                 <label className="flex items-center gap-2 text-sm font-medium mb-2">
+                    <CreditCard size={16} className="text-accent" />
+                    CPF
+                </label>
+                <input
+                    type="text"
+                    value={store.clientCpf}
+                    onChange={(e) => handleCpfChange(e.target.value)}
+                    disabled={hasRegisteredCpf}
+                    placeholder="000.000.000-00"
+                    className={`w-full bg-bg-input input-surface border rounded-xl px-4 py-3 text-sm font-mono focus:border-accent focus:ring-1 focus:ring-accent/30 transition outline-none disabled:opacity-60 disabled:cursor-not-allowed ${cpfError ? 'border-error' : 'border-border'
+                        }`}
+                    aria-invalid={!!cpfError}
+                    aria-describedby={cpfError ? 'cpf-error' : undefined}
+                />
+                {cpfError && <p id="cpf-error" className="text-error text-xs mt-1">{cpfError}</p>}
+            </div>
+
+            <div>
+                <label className="flex items-center gap-2 text-sm font-medium mb-2">
                     <Phone size={16} className="text-accent" />
                     Telefone celular
                 </label>
@@ -695,8 +740,9 @@ function StepInfo() {
                     type="tel"
                     value={store.clientPhone}
                     onChange={(e) => handlePhoneChange(e.target.value)}
+                    disabled={hasRegisteredPhone}
                     placeholder="(11) 99999-9999"
-                    className={`w-full bg-bg-input input-surface border rounded-xl px-4 py-3 text-sm font-mono focus:border-accent focus:ring-1 focus:ring-accent/30 transition outline-none ${phoneError ? 'border-error' : 'border-border'
+                    className={`w-full bg-bg-input input-surface border rounded-xl px-4 py-3 text-sm font-mono focus:border-accent focus:ring-1 focus:ring-accent/30 transition outline-none disabled:opacity-60 disabled:cursor-not-allowed ${phoneError ? 'border-error' : 'border-border'
                         }`}
                     aria-invalid={!!phoneError}
                     aria-describedby={phoneError ? 'phone-error' : undefined}
@@ -765,6 +811,10 @@ function StepConfirmation() {
                 <div className="flex justify-between items-center py-2 border-b border-border">
                     <span className="text-sm text-text-secondary">Cliente</span>
                     <span className="text-sm">{store.clientName}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-border">
+                    <span className="text-sm text-text-secondary">CPF</span>
+                    <span className="text-sm font-mono">{store.clientCpf}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-border">
                     <span className="text-sm text-text-secondary">Telefone</span>

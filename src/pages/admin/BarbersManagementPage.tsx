@@ -29,7 +29,7 @@ export function BarbersManagementPage() {
             const data = await getBarbers();
             setBarbers(data);
         } catch (error) {
-            addToast('error', 'Erro ao carregar barbeiros.');
+            addToast('error', 'Erro ao carregar Colaboradores.');
         } finally {
             setLoading(false);
         }
@@ -38,12 +38,12 @@ export function BarbersManagementPage() {
     const handleAddBarber = async () => {
         try {
             await registerBarber(newBarber);
-            addToast('success', 'Barbeiro adicionado com sucesso!');
+            addToast('success', 'Colaborador adicionado com sucesso!');
             setIsAddModalOpen(false);
             setNewBarber({ name: '', email: '', phone: '', cpf: '', password: '' });
             fetchBarbers();
         } catch (error) {
-            addToast('error', 'Erro ao adicionar barbeiro. Verifique os dados.');
+            addToast('error', 'Erro ao adicionar Colaborador. Verifique os dados.');
         }
     };
 
@@ -69,15 +69,15 @@ export function BarbersManagementPage() {
                 // Actually let's assume updateProfile call we added also works for admin updating others if we pass ID,
                 // or I'll add a specific updateBarber to api.ts if needed.
                 // For now, I'll use the registerBarber which likely maps to a save() in backend.
-                addToast('success', 'Barbeiro atualizado!');
+                addToast('success', 'Colaborador atualizado!');
             } else {
                 await registerBarber(newBarber);
-                addToast('success', 'Barbeiro adicionado!');
+                addToast('success', 'Colaborador adicionado!');
             }
             setIsAddModalOpen(false);
             fetchBarbers();
         } catch (error) {
-            addToast('error', 'Erro ao salvar barbeiro.');
+            addToast('error', 'Erro ao salvar Colaborador.');
         }
     };
 
@@ -99,7 +99,7 @@ export function BarbersManagementPage() {
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="font-heading text-2xl font-bold">Gerenciar Barbeiros</h1>
+                    <h1 className="font-heading text-2xl font-bold">Gerenciar Colaboradores</h1>
                     <p className="text-text-secondary text-sm">Adicione e gerencie os profissionais da barbearia.</p>
                 </div>
                 <button
@@ -107,7 +107,7 @@ export function BarbersManagementPage() {
                     className="flex items-center gap-2 bg-accent hover:bg-accent-hover text-bg-primary font-semibold px-4 py-2.5 rounded-xl transition text-sm"
                 >
                     <Plus size={16} />
-                    Novo Barbeiro
+                    Novo Colaborador
                 </button>
             </div>
 
@@ -173,7 +173,7 @@ export function BarbersManagementPage() {
                         >
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="font-heading font-bold text-xl">
-                                    {editingTarget ? 'Editar Barbeiro' : 'Novo Barbeiro'}
+                                    {editingTarget ? 'Editar Colaborador' : 'Novo Colaborador'}
                                 </h3>
                                 <button onClick={() => { setIsAddModalOpen(false); setEditingTarget(null); }} className="p-2 hover:bg-white/10 rounded-xl transition" aria-label="Fechar">
                                     <X size={20} />
@@ -241,7 +241,7 @@ export function BarbersManagementPage() {
                                 disabled={!newBarber.name || !newBarber.email || (!editingTarget && !newBarber.password)}
                                 className="w-full mt-8 bg-accent hover:bg-accent-hover disabled:opacity-40 text-bg-primary font-bold py-4 rounded-2xl transition shadow-lg shadow-accent/20"
                             >
-                                {editingTarget ? 'Salvar Alterações' : 'Adicionar Barbeiro'}
+                                {editingTarget ? 'Salvar Alterações' : 'Adicionar Colaborador'}
                             </button>
                         </motion.div>
                     </div>

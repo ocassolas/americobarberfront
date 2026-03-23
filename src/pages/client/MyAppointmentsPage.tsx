@@ -248,7 +248,7 @@ export function MyAppointmentsPage() {
                             </div>
 
                             <div className="mb-6">
-                                <label className="block text-xs font-bold text-text-secondary uppercase mb-1.5 ml-1">Motivo (opcional)</label>
+                                <label className="block text-xs font-bold text-text-secondary uppercase mb-1.5 ml-1">Motivo (obrigatório)</label>
                                 <textarea
                                     value={cancelReason}
                                     onChange={(e) => setCancelReason(e.target.value)}
@@ -267,7 +267,8 @@ export function MyAppointmentsPage() {
                                 </button>
                                 <button
                                     onClick={() => cancelId && handleCancel(cancelId)}
-                                    className="flex-1 py-3.5 rounded-2xl bg-error text-white text-sm font-bold hover:bg-error/90 transition shadow-lg shadow-error/20"
+                                    disabled={!cancelReason.trim()}
+                                    className="flex-1 py-3.5 rounded-2xl bg-error text-white text-sm font-bold hover:bg-error/90 transition shadow-lg shadow-error/20 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     Sim, cancelar
                                 </button>

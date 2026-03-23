@@ -4,7 +4,7 @@ import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import {
     MapPin, Phone, Star, Scissors, PenTool, Sparkles,
     Eye, Palette, Droplets, ChevronRight, Calendar, Instagram, MessageCircle, Clock,
-    ArrowRight, LogIn, User as UserIcon
+    ArrowRight, LogIn, User as UserIcon, Navigation
 } from 'lucide-react';
 import { getBarbers, getServices } from '@/services/api';
 import type { Barber, Service } from '@/types';
@@ -209,7 +209,9 @@ export function LandingPage() {
             <section className="landing-section">
                 <div className="max-w-6xl mx-auto px-4">
                     <SectionTitle subtitle="Nossa Equipe" title="Nossos Barbeiros" />
-                    <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                    <StaggerContainer className={`grid grid-cols-1 gap-8 mx-auto ${
+                        barbers.length === 1 ? 'max-w-md' : 'md:grid-cols-2 max-w-4xl'
+                    }`}>
                         {barbers.map((barber) => (
                             <motion.div key={barber.id} variants={staggerChild} className="landing-barber-card group">
                                 <div className="landing-barber-avatar-wrapper">
@@ -247,7 +249,11 @@ export function LandingPage() {
             <section className="landing-section landing-section-alt">
                 <div className="max-w-6xl mx-auto px-4">
                     <SectionTitle subtitle="O Que Oferecemos" title="Nossos Serviços" />
-                    <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <StaggerContainer className={`grid grid-cols-1 gap-5 mx-auto ${
+                        services.length === 1 ? 'max-w-md' :
+                        services.length === 2 ? 'sm:grid-cols-2 max-w-3xl' :
+                        'sm:grid-cols-2 lg:grid-cols-3'
+                    }`}>
                         {services.map((service) => (
                             <motion.div key={service.id} variants={staggerChild} className="landing-service-card group">
                                 <div className="landing-service-icon">
@@ -288,14 +294,42 @@ export function LandingPage() {
                             href={BUSINESS.addressLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="landing-info-card group"
+                            className="group relative flex flex-col overflow-hidden rounded-[20px] bg-[#1A1A1A] border border-white/5 transition-all duration-400 hover:border-accent/30 hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(0,0,0,0.2)]"
                         >
-                            <div className="landing-info-icon">
-                                <MapPin size={24} />
+                            {/* Map Box */}
+                            <div className="relative w-full h-40 bg-[#E5E3DF] overflow-hidden">
+                                <iframe 
+                                    src={`https://maps.google.com/maps?hl=pt-BR&q=${encodeURIComponent(BUSINESS.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                                    className="absolute w-[200%] h-[200%] -left-[50%] -top-[50%] border-0"
+                                    style={{ filter: 'grayscale(0.1) contrast(1.05)' }}
+                                    allowFullScreen 
+                                    loading="lazy" 
+                                    referrerPolicy="no-referrer-when-downgrade"
+                                />
+                                {/* Overlay to catch clicks and prevent iframe interaction */}
+                                <div className="absolute inset-0 bg-transparent z-10" />
+                                
+                                <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center">
+                                    <div className="w-12 h-12 bg-accent rounded-full border-[4px] border-[#1A1A1A] flex items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.5)] transform -translate-y-2">
+                                        <MapPin size={20} className="text-[#1A1A1A] fill-[#1A1A1A]" />
+                                    </div>
+                                </div>
                             </div>
-                            <h3 className="landing-info-title">Endereço</h3>
-                            <p className="landing-info-text">{BUSINESS.address}</p>
-                            <span className="landing-info-link">Ver no mapa <ChevronRight size={14} /></span>
+                            
+                            {/* Info Box */}
+                            <div className="p-5 flex items-center justify-between text-left">
+                                <div className="flex-1 min-w-0 pr-4">
+                                    <h3 className="font-heading font-semibold text-text-primary text-[15px] mb-1 truncate">
+                                        {BUSINESS.address.split(' - ')[0]}
+                                    </h3>
+                                    <p className="text-[13px] text-text-secondary truncate">
+                                        {BUSINESS.address.split(' - ')[1] || BUSINESS.address}
+                                    </p>
+                                </div>
+                                <div className="w-11 h-11 flex-shrink-0 rounded-xl bg-[#2A2A2A] group-hover:bg-accent/10 flex items-center justify-center text-accent transition-colors duration-400">
+                                    <Navigation size={18} className="transform rotate-45 group-hover:rotate-0 transition-transform duration-400" />
+                                </div>
+                            </div>
                         </motion.a>
 
                         <motion.a

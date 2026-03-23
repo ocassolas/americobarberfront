@@ -9,6 +9,7 @@ interface BookingStore extends BookingState {
     setTime: (time: string | null) => void;
     setClientName: (name: string) => void;
     setClientPhone: (phone: string) => void;
+    setClientCpf: (cpf: string) => void;
     setNotes: (notes: string) => void;
     reset: () => void;
     totalDuration: () => number;
@@ -24,6 +25,7 @@ const initialState: BookingState = {
     time: null,
     clientName: '',
     clientPhone: '',
+    clientCpf: '',
     notes: '',
 };
 
@@ -44,6 +46,7 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
     setTime: (time) => set({ time }),
     setClientName: (clientName) => set({ clientName }),
     setClientPhone: (clientPhone) => set({ clientPhone }),
+    setClientCpf: (clientCpf) => set({ clientCpf }),
     setNotes: (notes) => set({ notes }),
     reset: () => set(initialState),
     totalDuration: () => get().services.reduce((sum, s) => sum + s.durationMinutes, 0),

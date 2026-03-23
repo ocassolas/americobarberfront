@@ -25,8 +25,14 @@ export async function getBarbers(): Promise<Barber[]> {
         const res = await apiClient.get<Barber[]>('/admin/barbers');
         return res.data;
     } else {
-        const res = await apiClient.get<Barber[]>('/clients/barbers');
-        return res.data;
+        const user = useAuthStore.getState().user;
+        if (user) {
+            const res = await apiClient.get<Barber[]>('/clients/barbers');
+            return res.data;
+        } else {
+            const res = await apiClient.get<Barber[]>('/public/barbers');
+            return res.data;
+        }
     }
 }
 
@@ -49,9 +55,18 @@ export async function getServices(barberId?: number): Promise<Service[]> {
         const res = await apiClient.get<Service[]>('/barbers/services');
         return res.data;
     } else {
-        if (!barberId) return [];
-        const res = await apiClient.get<Service[]>(`/clients/barbers/${barberId}/services`);
-        return res.data;
+        if (!barberId) {
+            const res = await apiClient.get<Service[]>('/public/services');
+            return res.data;
+        }
+        
+        const user = useAuthStore.getState().user;
+        if (user) {
+            const res = await apiClient.get<Service[]>(`/clients/barbers/${barberId}/services`);
+            return res.data;
+        } else {
+            return [];
+        }
     }
 }
 
