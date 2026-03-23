@@ -474,6 +474,12 @@ function StepDate() {
 
     const isUnavailable = (d: Date) => {
         if (isBefore(d, today)) return true;
+
+        // Limite de 30 dias a partir de hoje
+        const maxDate = new Date(today);
+        maxDate.setDate(today.getDate() + 30);
+        if (d > maxDate) return true;
+
         const dateStr = formatDateStr(d);
         if (daysOff.includes(dateStr)) return true;
         // Disable days the barber doesn't work
@@ -486,7 +492,17 @@ function StepDate() {
         if (!isBefore(endOfMonth(prev), today)) setCurrentMonth(prev);
     };
 
-    const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
+    const handleNextMonth = () => {
+        const next = addMonths(currentMonth, 1);
+        const maxDate = new Date(today);
+        maxDate.setDate(today.getDate() + 30);
+
+        // Bloqueia navegação de meses além do mês da data máxima permitida
+        if (next.getFullYear() > maxDate.getFullYear()) return;
+        if (next.getFullYear() === maxDate.getFullYear() && next.getMonth() > maxDate.getMonth()) return;
+
+        setCurrentMonth(next);
+    };
 
     const selectedDate = date ? new Date(date + 'T12:00:00') : null;
 
