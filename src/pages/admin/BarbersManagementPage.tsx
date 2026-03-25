@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Pencil, Trash2, X, User, Phone, Mail, CreditCard, ShieldCheck } from 'lucide-react';
-import { getBarbers, registerBarber } from '@/services/api';
+import { getBarbers, registerBarber, updateUser } from '@/services/api';
 import { useToastStore } from '@/stores/useToastStore';
 import { maskCPF, maskPhone } from '@/utils/masks';
 import type { Barber } from '@/types';
@@ -17,6 +17,7 @@ export function BarbersManagementPage() {
         phone: '',
         cpf: '',
         password: '',
+        description: '',
     });
     const addToast = useToastStore((s) => s.addToast);
 
@@ -40,7 +41,7 @@ export function BarbersManagementPage() {
             await registerBarber(newBarber);
             addToast('success', 'Colaborador adicionado com sucesso!');
             setIsAddModalOpen(false);
-            setNewBarber({ name: '', email: '', phone: '', cpf: '', password: '' });
+            setNewBarber({ name: '', email: '', phone: '', cpf: '', password: '', description: '' });
             fetchBarbers();
         } catch (error) {
             addToast('error', 'Erro ao adicionar Colaborador. Verifique os dados.');
@@ -55,6 +56,7 @@ export function BarbersManagementPage() {
             phone: barber.phone,
             cpf: barber.cpf,
             password: '', // Password empty when editing
+            description: barber.description || '',
         });
         setIsAddModalOpen(true);
     };
@@ -62,13 +64,11 @@ export function BarbersManagementPage() {
     const handleSave = async () => {
         try {
             if (editingTarget) {
-                // We'll use the profile update endpoint for simplicity if it works for other users too,
-                // or assume a general user update endpoint. 
-                // The AdminController has PUT /api/admin/users/{id}
-                await registerBarber({ ...newBarber, id: editingTarget.id }); // If registerBarber handles both (upsert)
-                // Actually let's assume updateProfile call we added also works for admin updating others if we pass ID,
-                // or I'll add a specific updateBarber to api.ts if needed.
-                // For now, I'll use the registerBarber which likely maps to a save() in backend.
+                const updatePayload = { 
+                    ...newBarber,
+                    password: newBarber.password ? newBarber.password : undefined
+                };
+                await updateUser(editingTarget.id, updatePayload);
                 addToast('success', 'Colaborador atualizado!');
             } else {
                 await registerBarber(newBarber);
@@ -83,7 +83,7 @@ export function BarbersManagementPage() {
 
     const openAddModal = () => {
         setEditingTarget(null);
-        setNewBarber({ name: '', email: '', phone: '', cpf: '', password: '' });
+        setNewBarber({ name: '', email: '', phone: '', cpf: '', password: '', description: '' });
         setIsAddModalOpen(true);
     };
 
@@ -232,6 +232,15 @@ export function BarbersManagementPage() {
                                         onChange={(e) => setNewBarber({ ...newBarber, password: e.target.value })}
                                         className="w-full bg-bg-input input-surface border border-border rounded-2xl px-4 py-3 text-sm focus:border-accent outline-none transition"
                                         placeholder="No mínimo 6 caracteres"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-semibold mb-1.5 block text-text-secondary uppercase tracking-wider">Breve Descrição / Bio</label>
+                                    <textarea
+                                        value={newBarber.description}
+                                        onChange={(e) => setNewBarber({ ...newBarber, description: e.target.value })}
+                                        className="w-full bg-bg-input input-surface border border-border rounded-2xl px-4 py-3 text-sm focus:border-accent outline-none transition resize-none h-24"
+                                        placeholder="Ex: Especialista em cortes clássicos..."
                                     />
                                 </div>
                             </div>

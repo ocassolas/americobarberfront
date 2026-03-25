@@ -46,6 +46,11 @@ export async function updateProfile(data: any): Promise<Barber> {
     return res.data;
 }
 
+export async function updateUser(id: number, data: any): Promise<Barber> {
+    const res = await apiClient.put<Barber>(`/admin/users/${id}`, data);
+    return res.data;
+}
+
 // ================= SERVICES =================
 export async function getServices(barberId?: number): Promise<Service[]> {
     if (isAdmin() && !isBarber()) {

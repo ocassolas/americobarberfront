@@ -227,16 +227,16 @@ export function LandingPage() {
                                 <div className="landing-barber-info">
                                     <h3 className="landing-barber-name">{barber.name}</h3>
                                     <p className="landing-barber-specialty">{barber.specialty}</p>
-                                    <p className="landing-barber-bio">{barber.bio}</p>
+                                    <p className="landing-barber-bio">{barber.description || barber.bio}</p>
                                     <div className="landing-barber-rating">
                                         {Array.from({ length: 5 }).map((_, i) => (
                                             <Star
                                                 key={i}
                                                 size={14}
-                                                className={i < Math.round(barber.rating ?? 0) ? 'text-accent fill-accent' : 'text-text-disabled'}
+                                                className="text-accent fill-accent"
                                             />
                                         ))}
-                                        <span className="font-mono text-sm text-text-secondary ml-1.5">{barber.rating}</span>
+                                        <span className="font-mono text-sm text-text-secondary ml-1.5">5.0</span>
                                     </div>
                                 </div>
                             </motion.div>

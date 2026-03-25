@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, User, Phone, Mail, Calendar, Filter, ChevronRight } from 'lucide-react';
+import { Search, User, Phone, Mail, Calendar, Filter, ChevronRight, Copy } from 'lucide-react';
 import { getAdminClients } from '@/services/api';
 import { useToastStore } from '@/stores/useToastStore';
 import type { Barber } from '@/types'; // Using Barber type as it's the same structure for UserResponse
@@ -24,6 +24,12 @@ export function ClientsManagementPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleCopyClientData = (client: Barber) => {
+        const textToCopy = `Nome: ${client.name}\nEmail: ${client.email}\nTelefone: ${client.phone}${client.cpf ? `\nCPF: ${client.cpf}` : ''}\nStatus: ${client.active ? 'Ativo' : 'Inativo'}`;
+        navigator.clipboard.writeText(textToCopy);
+        addToast('success', 'Dados do cliente copiados!');
     };
 
     const filteredClients = clients.filter(c => 
@@ -88,8 +94,12 @@ export function ClientsManagementPage() {
                                     <h3 className="font-bold truncate">{client.name}</h3>
                                     <span className="text-[10px] text-text-disabled uppercase font-bold tracking-widest leading-none">Cliente #{client.id}</span>
                                 </div>
-                                <button className="p-2 rounded-xl bg-white/5 opacity-0 group-hover:opacity-100 transition">
-                                    <ChevronRight size={16} className="text-text-secondary" />
+                                <button 
+                                    onClick={() => handleCopyClientData(client)}
+                                    className="p-2 rounded-xl bg-white/5 text-text-secondary hover:text-accent hover:bg-accent/10 transition"
+                                    title="Copiar dados"
+                                >
+                                    <Copy size={16} />
                                 </button>
                             </div>
 

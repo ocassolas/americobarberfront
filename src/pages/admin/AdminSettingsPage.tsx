@@ -14,13 +14,14 @@ export function AdminSettingsPage() {
     const [email, setEmail] = useState(user?.email || '');
     const [phone, setPhone] = useState(user?.phone || '');
     const [profilePicture, setProfilePicture] = useState(user?.profilePicture || '');
+    const [description, setDescription] = useState(user?.description || '');
     const [saving, setSaving] = useState(false);
     const addToast = useToastStore((s) => s.addToast);
 
     const handleSave = async () => {
         setSaving(true);
         try {
-            const updated = await updateProfile({ name, email, phone, profilePicture });
+            const updated = await updateProfile({ name, email, phone, profilePicture, description });
             setUser(updated);
             addToast('success', 'Perfil atualizado com sucesso!');
         } catch (error) {
@@ -112,6 +113,16 @@ export function AdminSettingsPage() {
                                 className="w-full bg-bg-input border border-border rounded-xl pl-11 pr-4 py-3 text-sm font-mono focus:border-accent outline-none transition"
                             />
                         </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1.5 ml-1">Breve Descrição / Bio</label>
+                        <textarea
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            className="w-full bg-bg-input border border-border rounded-xl px-4 py-3 text-sm focus:border-accent outline-none transition resize-none h-24"
+                            placeholder="Especialista em..."
+                        />
                     </div>
 
                     <button

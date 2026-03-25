@@ -328,9 +328,9 @@ function StepBarber() {
                             <p className="text-sm text-accent">{b.specialty}</p>
                             <div className="flex items-center gap-1 mt-1">
                                 {Array.from({ length: 5 }).map((_, i) => (
-                                    <Star key={i} size={12} className={i < Math.round(b.rating ?? 0) ? 'text-accent fill-accent' : 'text-text-disabled'} />
+                                    <Star key={i} size={12} className="text-accent fill-accent" />
                                 ))}
-                                <span className="text-xs text-text-secondary ml-1 font-mono">{b.rating}</span>
+                                <span className="text-xs text-text-secondary ml-1 font-mono">5.0</span>
                             </div>
                         </div>
                         {selected && (

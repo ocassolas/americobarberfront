@@ -18,6 +18,7 @@ export interface UserResponse {
     assignedBarberId: number | null;
     slotIntervalMinutes: number;
     profilePicture?: string;
+    description?: string;
 }
 
 export interface LoginResponse {

@@ -17,7 +17,7 @@ export function AgendaPage() {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [view, setView] = useState<ViewMode>('week');
+    const [view, setView] = useState<ViewMode>('day');
     const [selected, setSelected] = useState<Appointment | null>(null);
     const [proposeTarget, setProposeTarget] = useState<Appointment | null>(null);
     const addToast = useToastStore((s) => s.addToast);
