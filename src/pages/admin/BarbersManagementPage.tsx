@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Pencil, Trash2, X, User, Phone, Mail, CreditCard, ShieldCheck } from 'lucide-react';
-import { getBarbers, registerBarber, updateUser } from '@/services/api';
+import { getBarbers, registerBarber, updateUser, deleteBarber } from '@/services/api';
 import { useToastStore } from '@/stores/useToastStore';
 import { maskCPF, maskPhone } from '@/utils/masks';
 import type { Barber } from '@/types';
@@ -11,6 +11,8 @@ export function BarbersManagementPage() {
     const [loading, setLoading] = useState(true);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingTarget, setEditingTarget] = useState<Barber | null>(null);
+    const [deletingTarget, setDeletingTarget] = useState<Barber | null>(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [newBarber, setNewBarber] = useState({
         name: '',
         email: '',
@@ -78,6 +80,24 @@ export function BarbersManagementPage() {
             fetchBarbers();
         } catch (error) {
             addToast('error', 'Erro ao salvar Colaborador.');
+        }
+    };
+
+    const handleDeleteClick = (barber: Barber) => {
+        setDeletingTarget(barber);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deletingTarget) return;
+        try {
+            await deleteBarber(deletingTarget.id);
+            addToast('success', 'Colaborador excluído com sucesso!');
+            setIsDeleteModalOpen(false);
+            setDeletingTarget(null);
+            fetchBarbers();
+        } catch (error) {
+            addToast('error', 'Erro ao excluir colaborador.');
         }
     };
 
@@ -154,7 +174,13 @@ export function BarbersManagementPage() {
                                 <Pencil size={14} className="text-accent" />
                                 Editar
                             </button>
-                            <span className="text-[10px] text-text-disabled uppercase font-bold tracking-wider ml-auto">ID: {barber.id}</span>
+                            <button
+                                onClick={() => handleDeleteClick(barber)}
+                                className="w-10 h-[34px] flex items-center justify-center rounded-xl bg-error/10 hover:bg-error/20 text-error transition"
+                                title="Excluir Colaborador"
+                            >
+                                <Trash2 size={14} />
+                            </button>
                         </div>
                     </motion.div>
                 ))}
@@ -252,6 +278,45 @@ export function BarbersManagementPage() {
                             >
                                 {editingTarget ? 'Salvar Alterações' : 'Adicionar Colaborador'}
                             </button>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Delete Confirmation Modal */}
+            <AnimatePresence>
+                {isDeleteModalOpen && deletingTarget && (
+                    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => { setIsDeleteModalOpen(false); setDeletingTarget(null); }}>
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-bg-card border border-error/50 rounded-3xl p-6 max-w-sm w-full text-center relative overflow-hidden"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-error/80" />
+                            <div className="w-16 h-16 rounded-full bg-error/10 text-error flex items-center justify-center mx-auto mb-4">
+                                <Trash2 size={32} />
+                            </div>
+                            <h3 className="font-heading font-bold text-xl mb-2">Excluir Colaborador</h3>
+                            <p className="text-text-secondary text-sm mb-6">
+                                Tem certeza que deseja remover <strong>{deletingTarget.name}</strong>? Esta ação não pode ser desfeita.
+                            </p>
+                            
+                            <div className="flex gap-3 mt-8">
+                                <button
+                                    onClick={() => { setIsDeleteModalOpen(false); setDeletingTarget(null); }}
+                                    className="flex-1 bg-white/5 hover:bg-white/10 font-bold py-3.5 rounded-2xl transition"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleConfirmDelete}
+                                    className="flex-1 bg-error hover:bg-error-hover text-white font-bold py-3.5 rounded-2xl transition shadow-lg shadow-error/20"
+                                >
+                                    Excluir
+                                </button>
+                            </div>
                         </motion.div>
                     </div>
                 )}

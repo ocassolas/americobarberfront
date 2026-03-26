@@ -12,6 +12,7 @@ import { ToastContainer } from '@/components/shared/ToastContainer';
 import { LoadingBar } from '@/components/shared/LoadingBar';
 import { PageTransition } from '@/components/shared/PageTransition';
 import { BUSINESS, TEXT } from '@/config/constants';
+import { AdminBookingFAB } from '@/components/admin/AdminBookingFAB';
 
 const NAV_MAIN = [
     { path: '/admin/dashboard', label: TEXT.admin.dashboard, icon: LayoutDashboard },
@@ -312,6 +313,7 @@ export function AdminLayout() {
             </div>
             <LoadingBar />
             <ToastContainer />
+            <AdminBookingFAB />
         </div>
     );
 }

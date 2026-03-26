@@ -51,6 +51,11 @@ export async function updateUser(id: number, data: any): Promise<Barber> {
     return res.data;
 }
 
+export async function deleteBarber(id: number): Promise<void> {
+    // Soft delete works by updating active to false in updateUser
+    await updateUser(id, { active: false });
+}
+
 // ================= SERVICES =================
 export async function getServices(barberId?: number): Promise<Service[]> {
     if (isAdmin() && !isBarber()) {
@@ -119,6 +124,11 @@ export async function getAppointmentsByPhone(phone: string): Promise<Appointment
 
 export async function createAppointment(data: AppointmentRequest): Promise<Appointment> {
     const res = await apiClient.post<Appointment>('/clients/appointments', data);
+    return res.data;
+}
+
+export async function createAdminAppointment(data: AppointmentRequest): Promise<Appointment> {
+    const res = await apiClient.post<Appointment>('/admin/appointments', data);
     return res.data;
 }
 
