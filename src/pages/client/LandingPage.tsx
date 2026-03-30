@@ -416,16 +416,6 @@ export function LandingPage() {
                 </Reveal>
             </section>
 
-            {/* ═══════════ FLOATING MOBILE CTA ═══════════ */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-bg-primary via-bg-primary/95 to-transparent md:hidden z-40">
-                <Link
-                    to="/agendar"
-                    className="flex items-center justify-center gap-2 w-full bg-accent hover:bg-accent-hover text-bg-primary font-semibold py-3.5 rounded-xl transition shadow-lg shadow-accent/20"
-                >
-                    <Calendar size={18} />
-                    {TEXT.hero.cta}
-                </Link>
-            </div>
         </div>
     );
 }

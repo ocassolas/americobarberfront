@@ -18,8 +18,7 @@ export function FloatingBookingButton() {
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0, opacity: 0, y: 20 }}
                     whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="fixed bottom-6 right-6 z-40"
+                    className="fixed bottom-[90px] right-4 sm:right-6 z-40"
                 >
                     <Link
                         to="/agendar"

@@ -6,9 +6,11 @@ interface AuthStore {
     isAuthenticated: boolean;
     token: string | null;
     user: UserResponse | null;
+    lastUpdateTimestamp: number;
     login: (data: LoginResponse) => void;
     logout: () => void;
     setUser: (user: UserResponse) => void;
+    triggerUpdate: () => void;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -17,6 +19,7 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: false,
             token: null,
             user: null,
+            lastUpdateTimestamp: Date.now(),
             login: (data: LoginResponse) => set({
                 isAuthenticated: true,
                 token: data.token,
@@ -24,19 +27,21 @@ export const useAuthStore = create<AuthStore>()(
                     id: data.userId,
                     name: data.name,
                     email: data.email,
-                    cpf: '', // Not returned in login response currently, fetched in profile
-                    phone: '', // Not returned in login response currently, fetched in profile
+                    cpf: '', 
+                    phone: '', 
                     role: data.role,
                     active: true,
                     isBarber: data.isBarber,
+                    isOwner: data.isOwner,
                     createdAt: new Date().toISOString(),
                     assignedBarberId: null,
-                    slotIntervalMinutes: 30, // Default value
+                    slotIntervalMinutes: 30, 
                     profilePicture: data.profilePicture,
                 }
             }),
             logout: () => set({ isAuthenticated: false, token: null, user: null }),
             setUser: (user: UserResponse) => set({ user }),
+            triggerUpdate: () => set({ lastUpdateTimestamp: Date.now() }),
         }),
         { name: 'americo-auth' }
     )

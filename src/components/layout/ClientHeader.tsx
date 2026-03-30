@@ -42,7 +42,7 @@ export function ClientHeader() {
     return (
         <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${headerBg}`}>
             <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-                <Link to="/" className="flex items-center gap-2.5 group" aria-label="Página inicial">
+                <Link to="/" className={`flex items-center gap-2.5 group ${isHome ? 'hidden' : ''}`} aria-label="Página inicial">
                     <img
                         src="/logo.png"
                         alt={BUSINESS.name}
@@ -51,7 +51,7 @@ export function ClientHeader() {
                 </Link>
 
                 {isAuthenticated && user && (
-                    <div className="relative" ref={menuRef}>
+                    <div className="relative ml-auto" ref={menuRef}>
                         <button
                             onClick={() => setMenuOpen(!menuOpen)}
                             className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-white/10 transition text-sm"

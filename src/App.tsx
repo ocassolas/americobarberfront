@@ -31,6 +31,12 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function SuperAdminGuard({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((s) => s.user);
+  if (!user?.isOwner) return <Navigate to="/admin/dashboard" replace />;
+  return <>{children}</>;
+}
+
 function ClientGuard({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   if (!isAuthenticated) return <Navigate to="/entrar" replace />;
@@ -73,7 +79,7 @@ function App() {
           <Route path="/admin/dashboard" element={<DashboardPage />} />
           <Route path="/admin/agenda" element={<AgendaPage />} />
           <Route path="/admin/servicos" element={<ServicesPage />} />
-          <Route path="/admin/barbeiros" element={<BarbersManagementPage />} />
+          <Route path="/admin/barbeiros" element={<SuperAdminGuard><BarbersManagementPage /></SuperAdminGuard>} />
           <Route path="/admin/clientes" element={<ClientsManagementPage />} />
           <Route path="/admin/historico" element={<HistoryPage />} />
           <Route path="/admin/horarios" element={<WorkHoursPage />} />

@@ -28,12 +28,16 @@ const NAV_BOTTOM = [
     { path: '/admin/configuracoes', label: TEXT.admin.settings, icon: Settings },
 ] as const;
 
+import { useAdminSSE } from '@/hooks/useAdminSSE';
+
 export function AdminLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [collapsed, setCollapsed] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
     const { user, logout } = useAuthStore();
+    
+    useAdminSSE();
 
     const handleLogout = () => {
         logout();
@@ -73,7 +77,7 @@ export function AdminLayout() {
                             Menu Principal
                         </span>
                     )}
-                    {NAV_MAIN.map((item) => {
+                    {NAV_MAIN.filter(item => item.path !== '/admin/barbeiros' || user?.isOwner).map((item) => {
                         const active = location.pathname === item.path;
                         return (
                             <Link
@@ -221,7 +225,7 @@ export function AdminLayout() {
                                 <span className="admin-sidebar-section-label">
                                     Menu Principal
                                 </span>
-                                {NAV_MAIN.map((item) => {
+                                {NAV_MAIN.filter(item => item.path !== '/admin/barbeiros' || user?.isOwner).map((item) => {
                                     const active = location.pathname === item.path;
                                     return (
                                         <Link

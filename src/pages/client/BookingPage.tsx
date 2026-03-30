@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Check, ChevronLeft, ChevronRight, Scissors, Star, Dices,
     Clock, Sun, CloudSun, Moon, Calendar, User, Phone, FileText,
-    PenTool, Sparkles, Eye, Palette, Droplets, CheckCircle, CreditCard,
+    PenTool, Sparkles, Eye, Palette, Droplets, CheckCircle, CreditCard, X,
 } from 'lucide-react';
 import { useBookingStore } from '@/stores/useBookingStore';
 import { useToastStore } from '@/stores/useToastStore';
@@ -569,11 +569,137 @@ function StepDate() {
     );
 }
 
+/* ====================== OTHER BARBER SLOTS MODAL ====================== */
+function OtherBarberSlotsModal({
+    barber,
+    slots,
+    loading,
+    onSelectSlot,
+    onClose,
+    getPeriod,
+    periodLabels,
+}: {
+    barber: Barber;
+    slots: TimeSlot[];
+    loading: boolean;
+    onSelectSlot: (slotTime: string) => void;
+    onClose: () => void;
+    getPeriod: (t: string) => string;
+    periodLabels: Record<string, { icon: React.ReactNode; label: string }>;
+}) {
+    const grouped = slots.reduce<Record<string, TimeSlot[]>>((acc, s) => {
+        const p = getPeriod(s.time);
+        if (!acc[p]) acc[p] = [];
+        acc[p].push(s);
+        return acc;
+    }, {});
+
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={onClose}
+        >
+            <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className="bg-bg-card border border-border rounded-2xl p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Header */}
+                <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+                            {barber.profilePicture ? (
+                                <img src={barber.profilePicture} alt={barber.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <img src="/logo.png" alt={barber.name} className="w-full h-full object-cover p-1" />
+                            )}
+                        </div>
+                        <div>
+                            <h3 className="font-heading font-semibold text-base">Horários de {barber.name}</h3>
+                            <p className="text-xs text-text-secondary">Selecione um horário para agendar</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="p-2 rounded-lg hover:bg-white/10 transition text-text-secondary"
+                    >
+                        <X size={18} />
+                    </button>
+                </div>
+
+                {loading ? (
+                    <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={i} className="skeleton h-11 rounded-xl" />
+                        ))}
+                    </div>
+                ) : slots.length === 0 ? (
+                    <div className="text-center py-8">
+                        <Calendar size={40} className="text-text-disabled mx-auto mb-3" />
+                        <p className="text-text-secondary text-sm">
+                            Nenhum horário disponível com {barber.name} nesta data.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="space-y-5">
+                        {Object.entries(grouped).map(([period, periodSlots]) => (
+                            <div key={period}>
+                                <div className="flex items-center gap-2 mb-2 text-sm font-medium text-text-secondary">
+                                    {periodLabels[period]?.icon}
+                                    {periodLabels[period]?.label}
+                                </div>
+                                <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+                                    {periodSlots.map((slot) => (
+                                        <button
+                                            key={slot.time}
+                                            disabled={!slot.available}
+                                            onClick={() => onSelectSlot(slot.time)}
+                                            className={`py-2.5 rounded-xl text-sm font-mono font-medium transition-all ${
+                                                slot.available
+                                                    ? 'bg-bg-input text-text-primary hover:bg-accent hover:text-bg-primary hover:scale-[1.03] hover:shadow-lg hover:shadow-accent/20'
+                                                    : 'bg-bg-card text-text-disabled line-through cursor-not-allowed opacity-50'
+                                            }`}
+                                        >
+                                            {slot.time}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Info note */}
+                <p className="text-xs text-text-disabled text-center mt-5">
+                    Ao selecionar um horário, o agendamento será feito com {barber.name}
+                </p>
+            </motion.div>
+        </motion.div>
+    );
+}
+
 /* ====================== STEP 4: TIME ====================== */
 function StepTime() {
-    const { barberId, date, time, setTime, services } = useBookingStore();
+    const store = useBookingStore();
+    const { barberId, barberName, date, time, setTime, services } = store;
     const [slots, setSlots] = useState<TimeSlot[]>([]);
     const [loadingSlots, setLoadingSlots] = useState(true);
+    const [allBarbers, setAllBarbers] = useState<Barber[]>([]);
+    const [showOtherBarberSlots, setShowOtherBarberSlots] = useState(false);
+    const [otherBarberSlots, setOtherBarberSlots] = useState<TimeSlot[]>([]);
+    const [loadingOtherSlots, setLoadingOtherSlots] = useState(false);
+    const [selectedOtherBarber, setSelectedOtherBarber] = useState<Barber | null>(null);
+
+    // Fetch all barbers to suggest alternatives
+    useEffect(() => {
+        getBarbers().then(setAllBarbers);
+    }, []);
 
     useEffect(() => {
         if (!date || !barberId || services.length === 0) return;
@@ -585,6 +711,35 @@ function StepTime() {
             setLoadingSlots(false);
         });
     }, [barberId, date, services]);
+
+    // Get other barbers (not the currently selected one)
+    const otherBarbers = allBarbers.filter(b => b.id !== barberId && barberId !== -1);
+
+    const handleSeeOtherBarber = async (barber: Barber) => {
+        if (!date || services.length === 0) return;
+        setSelectedOtherBarber(barber);
+        setShowOtherBarberSlots(true);
+        setLoadingOtherSlots(true);
+        const serviceIds = services.map(s => s.id);
+        try {
+            const otherSlots = await getTimeSlots(barber.id, date, serviceIds);
+            setOtherBarberSlots(otherSlots);
+        } catch {
+            setOtherBarberSlots([]);
+        }
+        setLoadingOtherSlots(false);
+    };
+
+    const handleSelectOtherBarberSlot = (barber: Barber, slotTime: string) => {
+        // Switch to the other barber and select the time
+        store.setBarber(barber.id, barber.name);
+        store.setTime(slotTime);
+        setShowOtherBarberSlots(false);
+    };
+
+    const handleGoToAnotherDay = () => {
+        store.setStep(2);
+    };
 
     const getPeriod = (t: string) => {
         const h = parseInt(t.split(':')[0], 10);
@@ -614,6 +769,51 @@ function StepTime() {
             <div className="text-center py-12">
                 <Calendar size={48} className="text-text-disabled mx-auto mb-4" />
                 <p className="text-text-secondary">{TEXT.booking.noSlots}</p>
+
+                {/* Suggestions even when no slots */}
+                <div className="mt-8 space-y-4 text-left">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl border border-border bg-bg-card">
+                        <span className="text-sm text-text-primary font-medium">
+                            Seu horário não está aparecendo?
+                        </span>
+                        <button
+                            onClick={handleGoToAnotherDay}
+                            className="px-5 py-2.5 bg-accent hover:bg-accent-hover text-bg-primary text-sm font-semibold rounded-xl transition whitespace-nowrap"
+                        >
+                            Agendar outro dia
+                        </button>
+                    </div>
+
+                    {otherBarbers.map((otherBarber) => (
+                        <div key={otherBarber.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl border border-dashed border-border bg-bg-card">
+                            <span className="text-sm text-text-primary">
+                                Horários disponíveis de{' '}
+                                <span className="font-semibold text-accent">{otherBarber.name}</span>
+                            </span>
+                            <button
+                                onClick={() => handleSeeOtherBarber(otherBarber)}
+                                className="px-5 py-2.5 border-2 border-dashed border-text-secondary/30 text-text-secondary text-sm font-medium rounded-xl hover:border-accent hover:text-accent transition whitespace-nowrap"
+                            >
+                                Ver
+                            </button>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Other barber slots modal */}
+                <AnimatePresence>
+                    {showOtherBarberSlots && selectedOtherBarber && (
+                        <OtherBarberSlotsModal
+                            barber={selectedOtherBarber}
+                            slots={otherBarberSlots}
+                            loading={loadingOtherSlots}
+                            onSelectSlot={(slotTime) => handleSelectOtherBarberSlot(selectedOtherBarber, slotTime)}
+                            onClose={() => setShowOtherBarberSlots(false)}
+                            getPeriod={getPeriod}
+                            periodLabels={periodLabels}
+                        />
+                    )}
+                </AnimatePresence>
             </div>
         );
     }
@@ -653,6 +853,51 @@ function StepTime() {
                     </div>
                 </div>
             ))}
+
+            {/* Suggestion section */}
+            <div className="mt-4 pt-6 border-t border-border space-y-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl border border-border bg-bg-card">
+                    <span className="text-sm text-text-primary font-medium">
+                        Seu horário não está aparecendo?
+                    </span>
+                    <button
+                        onClick={handleGoToAnotherDay}
+                        className="px-5 py-2.5 bg-accent hover:bg-accent-hover text-bg-primary text-sm font-semibold rounded-xl transition whitespace-nowrap"
+                    >
+                        Agendar outro dia
+                    </button>
+                </div>
+
+                {otherBarbers.map((otherBarber) => (
+                    <div key={otherBarber.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl border border-dashed border-border bg-bg-card">
+                        <span className="text-sm text-text-primary">
+                            Horários disponíveis de{' '}
+                            <span className="font-semibold text-accent">{otherBarber.name}</span>
+                        </span>
+                        <button
+                            onClick={() => handleSeeOtherBarber(otherBarber)}
+                            className="px-5 py-2.5 border-2 border-dashed border-text-secondary/30 text-text-secondary text-sm font-medium rounded-xl hover:border-accent hover:text-accent transition whitespace-nowrap"
+                        >
+                            Ver
+                        </button>
+                    </div>
+                ))}
+            </div>
+
+            {/* Other barber slots modal */}
+            <AnimatePresence>
+                {showOtherBarberSlots && selectedOtherBarber && (
+                    <OtherBarberSlotsModal
+                        barber={selectedOtherBarber}
+                        slots={otherBarberSlots}
+                        loading={loadingOtherSlots}
+                        onSelectSlot={(slotTime) => handleSelectOtherBarberSlot(selectedOtherBarber, slotTime)}
+                        onClose={() => setShowOtherBarberSlots(false)}
+                        getPeriod={getPeriod}
+                        periodLabels={periodLabels}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }

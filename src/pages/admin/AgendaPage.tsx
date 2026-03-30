@@ -9,6 +9,7 @@ import {
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToastStore } from '@/stores/useToastStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { RescheduleProposalModal } from '@/components/modals/RescheduleProposalModal';
 
 type ViewMode = 'week' | 'day';
@@ -21,10 +22,11 @@ export function AgendaPage() {
     const [selected, setSelected] = useState<Appointment | null>(null);
     const [proposeTarget, setProposeTarget] = useState<Appointment | null>(null);
     const addToast = useToastStore((s) => s.addToast);
+    const lastUpdateTimestamp = useAuthStore((s) => s.lastUpdateTimestamp);
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [lastUpdateTimestamp]);
 
     const fetchData = async () => {
         try {

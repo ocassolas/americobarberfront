@@ -14,6 +14,7 @@ export interface UserResponse {
     role: string;
     active: boolean;
     isBarber: boolean;
+    isOwner: boolean;
     createdAt: string;
     assignedBarberId: number | null;
     slotIntervalMinutes: number;
@@ -29,6 +30,7 @@ export interface LoginResponse {
     email: string;
     role: string;
     isBarber: boolean;
+    isOwner: boolean;
     profilePicture?: string;
 }
 

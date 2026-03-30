@@ -5,6 +5,7 @@ import { ToastContainer } from '@/components/shared/ToastContainer';
 import { PageTransition } from '@/components/shared/PageTransition';
 import { FloatingBookingButton } from '@/components/shared/FloatingBookingButton';
 import { LoadingBar } from '@/components/shared/LoadingBar';
+import { HelpChatbot } from '@/components/shared/HelpChatbot';
 
 export function ClientLayout() {
     return (
@@ -17,6 +18,7 @@ export function ClientLayout() {
             </main>
             <ClientFooter />
             <FloatingBookingButton />
+            <HelpChatbot />
             <LoadingBar />
             <ToastContainer />
         </div>

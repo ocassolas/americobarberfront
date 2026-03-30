@@ -6,6 +6,7 @@ import type { Appointment } from '@/types';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToastStore } from '@/stores/useToastStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { RescheduleProposalModal } from '@/components/modals/RescheduleProposalModal';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
@@ -14,13 +15,14 @@ export function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [proposeTarget, setProposeTarget] = useState<Appointment | null>(null);
     const addToast = useToastStore((s) => s.addToast);
+    const lastUpdateTimestamp = useAuthStore((s) => s.lastUpdateTimestamp);
 
     useEffect(() => {
         fetchData();
         // Auto-refresh every 60s so auto-finalized appointments and revenue update without manual reload
         const interval = setInterval(fetchData, 60_000);
         return () => clearInterval(interval);
-    }, []);
+    }, [lastUpdateTimestamp]);
 
     const fetchData = async () => {
         try {

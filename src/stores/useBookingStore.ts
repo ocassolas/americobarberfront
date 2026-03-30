@@ -37,9 +37,7 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
         set((s) => {
             const exists = s.services.find((sv) => sv.id === service.id);
             return {
-                services: exists
-                    ? s.services.filter((sv) => sv.id !== service.id)
-                    : [...s.services, service],
+                services: exists ? [] : [service],
             };
         }),
     setDate: (date) => set({ date, time: null }),
