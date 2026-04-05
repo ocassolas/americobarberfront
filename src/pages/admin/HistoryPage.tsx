@@ -1,10 +1,6 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Calendar, Filter } from 'lucide-react';
 import { getAppointments, getBarbers } from '@/services/api';
 import type { Appointment, Barber } from '@/types';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 
 export function HistoryPage() {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -14,11 +10,15 @@ export function HistoryPage() {
     const [statusFilter, setStatusFilter] = useState('all');
 
     useEffect(() => {
-        Promise.all([getAppointments(), getBarbers()]).then(([apts, bz]) => {
-            setAppointments(apts);
-            setBarbers(bz);
-            setLoading(false);
-        }).catch(console.error);
+        Promise.all([getAppointments(), getBarbers()])
+            .then(([apts, bz]) => {
+                setAppointments(apts);
+                setBarbers(bz);
+            })
+            .catch((err) => {
+                console.error('Erro ao carregar histórico:', err);
+            })
+            .finally(() => setLoading(false));
     }, []);
 
     const filtered = appointments.filter((a) => {
@@ -30,8 +30,13 @@ export function HistoryPage() {
     const totalRevenue = appointments
         .filter((a) => a.status === 'AGENDADO' || a.status === 'CONCLUIDO')
         .reduce((sum, a) => sum + (a.totalPrice || 0), 0);
-    const formatPrice = (p: number) => p.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    const formatDate = (d: string) => { const [y, m, day] = d.split('-'); return `${day}/${m}/${y}`; };
+    const formatPrice = (p: number | null | undefined) => (p ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const formatDate = (d: string | null | undefined) => {
+        if (!d) return '—';
+        const [y, m, day] = d.split('-');
+        return `${day}/${m}/${y}`;
+    };
+    const formatTime = (t: string | null | undefined) => (t ?? '').substring(0, 5);
 
     const STATUS_MAP: Record<string, { label: string; color: string }> = {
         AGENDADO: { label: 'Confirmado', color: 'bg-success/15 text-success' },
@@ -40,8 +45,6 @@ export function HistoryPage() {
         CANCELADO_POR_BARBEIRO: { label: 'Cancelado (Barbearia)', color: 'bg-error/15 text-error' },
         PROPOSTA_REAGENDAMENTO: { label: 'Reagendamento Pendente', color: 'bg-warning/15 text-warning' }
     };
-
-    const fmtTime = (h: number, m: number) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 
     if (loading) {
         return <div className="space-y-4"><div className="skeleton h-12 rounded-xl w-48" /><div className="skeleton h-64 rounded-2xl" /><div className="skeleton h-96 rounded-2xl" /></div>;
@@ -117,7 +120,7 @@ export function HistoryPage() {
                             {filtered.map((apt) => (
                                 <tr key={apt.id} className="border-b border-border/50 hover:bg-white/[0.02] transition">
                                     <td className="px-4 py-3 font-mono text-xs">{formatDate(apt.date)}</td>
-                                    <td className="px-4 py-3 font-mono text-xs">{apt.startTime}</td>
+                                    <td className="px-4 py-3 font-mono text-xs">{formatTime(apt.startTime as string)}</td>
                                     <td className="px-4 py-3 text-xs hidden md:table-cell">{apt.clientName}</td>
                                     <td className="px-4 py-3 text-xs hidden md:table-cell">{apt.barberName}</td>
                                     <td className="px-4 py-3 font-mono text-xs text-accent">{formatPrice(apt.totalPrice)}</td>

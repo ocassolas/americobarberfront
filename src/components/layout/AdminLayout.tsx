@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
     LayoutDashboard, Calendar, Scissors, Clock, BarChart3,
     Settings, LogOut, Menu, X, ChevronLeft, ChevronRight,
-    HelpCircle, User, Users,
+    User, Users,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -56,14 +56,14 @@ export function AdminLayout() {
                 {/* Logo / Brand */}
                 <div className="admin-sidebar-header">
                     <div className="admin-sidebar-logo overflow-hidden">
-                        <img src="/logo.png" alt={BUSINESS.name} className="w-full h-full object-cover" />
+                        <img src="/logo.png" alt={BUSINESS.name} className="w-full h-full object-contain" />
                     </div>
                     {!collapsed && (
                         <motion.span
                             initial={{ opacity: 0, x: -8 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -8 }}
-                            className="font-heading font-semibold text-sm text-text-primary whitespace-nowrap"
+                            className="font-heading font-semibold text-base text-accent whitespace-nowrap"
                         >
                             {BUSINESS.name}
                         </motion.span>
@@ -135,19 +135,6 @@ export function AdminLayout() {
                         );
                     })}
 
-                    {/* Help */}
-                    <button
-                        className={`admin-sidebar-item ${collapsed ? 'justify-center' : ''}`}
-                        title="Ajuda"
-                    >
-                        <span className="admin-sidebar-icon-wrapper">
-                            <HelpCircle size={19} strokeWidth={1.8} />
-                        </span>
-                        {!collapsed && (
-                            <span className="admin-sidebar-item-label">Ajuda</span>
-                        )}
-                    </button>
-
                     <div className="admin-sidebar-divider" />
 
                     {/* Logout */}
@@ -205,9 +192,9 @@ export function AdminLayout() {
                             <div className="admin-sidebar-header">
                                 <div className="flex items-center gap-2.5">
                                     <div className="admin-sidebar-logo overflow-hidden">
-                                        <img src="/logo.png" alt={BUSINESS.name} className="w-full h-full object-cover" />
+                                        <img src="/logo.png" alt={BUSINESS.name} className="w-full h-full object-contain" />
                                     </div>
-                                    <span className="font-heading font-semibold text-sm text-text-primary">
+                                    <span className="font-heading font-semibold text-base text-accent">
                                         {BUSINESS.name}
                                     </span>
                                 </div>

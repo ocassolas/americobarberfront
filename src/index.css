@@ -67,10 +67,18 @@ body.dark {
   color: #F5F5F5;
 }
 
-/* Light mode */
+/* Light mode — sobrescreve as variáveis para que todas as utilities
+   (bg-bg-card, text-text-primary, border-border etc.) se adaptem. */
 body.light {
-  background-color: #FAFAFA;
-  color: #1A1A1A;
+  --color-bg-primary: #FAFAFA;
+  --color-bg-card: #FFFFFF;
+  --color-bg-input: #F3F4F6;
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #6B7280;
+  --color-text-disabled: #9CA3AF;
+  --color-border: #E5E7EB;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
 }
 
 /* Focus visible ring */
@@ -169,6 +177,25 @@ body.light .text-secondary {
   color: #6B7280;
 }
 
+/* Light mode: inverte hovers brancos (que são invisíveis em fundo claro)
+   para overlays escuros sutis. Cobre os padrões mais usados no projeto. */
+body.light .hover\:bg-white\/5:hover { background-color: rgba(0, 0, 0, 0.04); }
+body.light .hover\:bg-white\/10:hover { background-color: rgba(0, 0, 0, 0.06); }
+body.light .hover\:bg-white\/20:hover { background-color: rgba(0, 0, 0, 0.08); }
+body.light .bg-white\/5 { background-color: rgba(0, 0, 0, 0.03); }
+body.light .bg-white\/10 { background-color: rgba(0, 0, 0, 0.05); }
+
+/* Gradientes decorativos que usam #0a0a0a quebram em modo claro */
+body.light .card-premium {
+  background-color: #FFFFFF;
+  border-color: #E5E7EB;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* Backgrounds com accent para overlays permanecem, apenas ajusta para modo claro */
+body.light .bg-accent\/5 { background-color: rgba(212, 168, 83, 0.08); }
+body.light .bg-accent\/10 { background-color: rgba(212, 168, 83, 0.12); }
+
 /* Headings font */
 h1,
 h2,
@@ -194,29 +221,24 @@ b {
 }
 
 .admin-sidebar-header {
-  height: 64px;
+  height: 96px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 16px;
+  gap: 12px;
+  padding: 0 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
 .admin-sidebar-logo {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--color-accent), #b8892e);
+  width: 80px;
+  height: 80px;
+  border-radius: 14px;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 12px;
-  color: #0a0a0a;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(212, 168, 83, 0.25);
 }
 
 .admin-sidebar-section-label {

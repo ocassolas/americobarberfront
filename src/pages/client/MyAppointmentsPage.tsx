@@ -76,7 +76,7 @@ export function MyAppointmentsPage() {
         }
     };
 
-    const handleConfirmReschedule = async (data: any) => {
+    const handleConfirmReschedule = async (data: { newDate: string; newStartTime: string; observation: string }) => {
         if (!rescheduleTarget) return;
         await rescheduleAppointment(rescheduleTarget.id, data);
         fetchAppointments();

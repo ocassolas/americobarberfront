@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, DollarSign, Users, Clock, CheckCircle2, History, User, BarChart3, TrendingUp } from 'lucide-react';
-import { getAppointments, finalizeAppointment, proposeReschedule } from '@/services/api';
+import { getAppointments, proposeReschedule } from '@/services/api';
 import type { Appointment } from '@/types';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -9,6 +9,7 @@ import { useToastStore } from '@/stores/useToastStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { RescheduleProposalModal } from '@/components/modals/RescheduleProposalModal';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { useThemeStore } from '@/stores/useThemeStore';
 
 export function DashboardPage() {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -17,6 +18,16 @@ export function DashboardPage() {
     const addToast = useToastStore((s) => s.addToast);
     const lastUpdateTimestamp = useAuthStore((s) => s.lastUpdateTimestamp);
     const user = useAuthStore((s) => s.user);
+    const isDark = useThemeStore((s) => s.isDark);
+
+    // Cores dos gráficos adaptadas ao tema
+    const chartColors = {
+        grid: isDark ? '#2A2A2A' : '#E5E7EB',
+        text: isDark ? '#A0A0A0' : '#6B7280',
+        tooltipBg: isDark ? '#1A1A1A' : '#FFFFFF',
+        tooltipBorder: isDark ? '#2A2A2A' : '#E5E7EB',
+        tooltipText: isDark ? '#F5F5F5' : '#1A1A1A',
+    };
 
     useEffect(() => {
         fetchData();
@@ -33,16 +44,6 @@ export function DashboardPage() {
             console.error(error);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleFinalize = async (id: number) => {
-        try {
-            await finalizeAppointment(id);
-            addToast('success', 'Atendimento finalizado com sucesso!');
-            fetchData();
-        } catch (error) {
-            addToast('error', 'Erro ao finalizar atendimento.');
         }
     };
 
@@ -146,12 +147,12 @@ export function DashboardPage() {
                     </h3>
                     <ResponsiveContainer width="100%" height={200}>
                         <BarChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
-                            <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#A0A0A0' }} />
-                            <YAxis tick={{ fontSize: 12, fill: '#A0A0A0' }} allowDecimals={false} />
+                            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                            <XAxis dataKey="day" tick={{ fontSize: 12, fill: chartColors.text }} />
+                            <YAxis tick={{ fontSize: 12, fill: chartColors.text }} allowDecimals={false} />
                             <Tooltip
-                                contentStyle={{ backgroundColor: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 12, fontSize: 12 }}
-                                labelStyle={{ color: '#F5F5F5' }}
+                                contentStyle={{ backgroundColor: chartColors.tooltipBg, border: `1px solid ${chartColors.tooltipBorder}`, borderRadius: 12, fontSize: 12 }}
+                                labelStyle={{ color: chartColors.tooltipText }}
                             />
                             <Bar dataKey="agendamentos" fill="#D4A853" radius={[6, 6, 0, 0]} />
                         </BarChart>
@@ -164,11 +165,11 @@ export function DashboardPage() {
                     </h3>
                     <ResponsiveContainer width="100%" height={200}>
                         <LineChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
-                            <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#A0A0A0' }} />
-                            <YAxis tick={{ fontSize: 12, fill: '#A0A0A0' }} />
+                            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                            <XAxis dataKey="day" tick={{ fontSize: 12, fill: chartColors.text }} />
+                            <YAxis tick={{ fontSize: 12, fill: chartColors.text }} />
                             <Tooltip
-                                contentStyle={{ backgroundColor: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 12, fontSize: 12 }}
+                                contentStyle={{ backgroundColor: chartColors.tooltipBg, border: `1px solid ${chartColors.tooltipBorder}`, borderRadius: 12, fontSize: 12 }}
                                 formatter={(val) => formatPrice(Number(val))}
                             />
                             <Line type="monotone" dataKey="receita" stroke="#D4A853" strokeWidth={2} dot={{ fill: '#D4A853' }} />
@@ -214,19 +215,12 @@ export function DashboardPage() {
                                         <span className="text-xs text-text-secondary hidden sm:inline">{(apt.barberName || 'N/A').split(' ')[0]}</span>
                                         {apt.status === 'AGENDADO' ? (
                                             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
-                                                <button 
+                                                <button
                                                     onClick={() => setProposeTarget(apt)}
                                                     className="bg-bg-card border border-border text-text-primary p-1.5 rounded-lg hover:bg-white/5 transition flex items-center gap-1.5 text-xs"
                                                     title="Propor Reagendamento"
                                                 >
                                                     <History size={14} className="text-accent" />
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleFinalize(apt.id)}
-                                                    className="bg-success text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-success/20"
-                                                >
-                                                    <CheckCircle2 size={14} />
-                                                    Finalizar
                                                 </button>
                                             </div>
                                         ) : (

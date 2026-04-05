@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Clock, User, Phone, CheckCircle2, History } from 'lucide-react';
-import { getAppointments, finalizeAppointment, proposeReschedule } from '@/services/api';
+import { getAppointments, proposeReschedule } from '@/services/api';
 import type { Appointment } from '@/types';
 import {
     format, addDays, subDays, startOfWeek, eachDayOfInterval,
@@ -36,17 +36,6 @@ export function AgendaPage() {
             addToast('error', 'Erro ao carregar agendamentos.');
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleFinalize = async (id: number) => {
-        try {
-            await finalizeAppointment(id);
-            addToast('success', 'Atendimento finalizado!');
-            setSelected(null);
-            fetchData();
-        } catch (error) {
-            addToast('error', 'Erro ao finalizar atendimento.');
         }
     };
 
@@ -196,7 +185,7 @@ export function AgendaPage() {
                                             )}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium">{apt.clientName || 'Cliente'}</p>
+                                            <p className="text-sm font-medium truncate">{apt.clientName || 'Cliente'}</p>
                                             <div className="flex gap-1 flex-wrap mt-0.5">
                                                 {apt.services?.map(s => (
                                                     <span key={s.id} className="text-[10px] bg-accent/10 px-1.5 py-0.5 rounded text-accent">
@@ -204,6 +193,11 @@ export function AgendaPage() {
                                                     </span>
                                                 ))}
                                             </div>
+                                            {apt.observation && apt.status !== 'CANCELADO_POR_CLIENTE' && apt.status !== 'CANCELADO_POR_BARBEIRO' && (
+                                                <p className="text-[10px] text-text-secondary italic mt-1 truncate" title={apt.observation}>
+                                                    "{apt.observation}"
+                                                </p>
+                                            )}
                                         </div>
                                         <div className="flex flex-col items-end gap-1">
                                             <span className="text-xs text-text-secondary">{(apt.barberName || 'N/A').split(' ')[0]}</span>
@@ -274,22 +268,13 @@ export function AgendaPage() {
                                 )}
 
                                 {selected.status === 'AGENDADO' && (
-                                    <>
-                                        <button 
-                                            onClick={() => setProposeTarget(selected)}
-                                            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-accent text-accent text-sm font-medium hover:bg-accent/5 transition"
-                                        >
-                                            <History size={16} />
-                                            Propor Reagendamento
-                                        </button>
-                                        <button 
-                                            onClick={() => handleFinalize(selected.id)}
-                                            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-success text-white text-sm font-bold transition shadow-lg shadow-success/20 hover:scale-[1.02] active:scale-[0.98]"
-                                        >
-                                            <CheckCircle2 size={18} />
-                                            Finalizar Atendimento
-                                        </button>
-                                    </>
+                                    <button
+                                        onClick={() => setProposeTarget(selected)}
+                                        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-accent text-accent text-sm font-medium hover:bg-accent/5 transition"
+                                    >
+                                        <History size={16} />
+                                        Propor Reagendamento
+                                    </button>
                                 )}
                             </div>
                         </div>
