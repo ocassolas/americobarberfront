@@ -16,6 +16,7 @@ export function DashboardPage() {
     const [proposeTarget, setProposeTarget] = useState<Appointment | null>(null);
     const addToast = useToastStore((s) => s.addToast);
     const lastUpdateTimestamp = useAuthStore((s) => s.lastUpdateTimestamp);
+    const user = useAuthStore((s) => s.user);
 
     useEffect(() => {
         fetchData();
@@ -111,7 +112,7 @@ export function DashboardPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="font-heading text-2xl font-bold mb-1">Dashboard</h1>
+                    <h1 className="font-heading text-2xl font-bold mb-1">Bem-vindo, {user?.name || ''}</h1>
                     <p className="text-text-secondary text-sm capitalize">
                         {format(today, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                     </p>

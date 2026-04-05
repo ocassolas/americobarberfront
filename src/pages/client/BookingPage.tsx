@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { apiClient } from '@/services/apiClient';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,8 +10,7 @@ import {
 import { useBookingStore } from '@/stores/useBookingStore';
 import { useToastStore } from '@/stores/useToastStore';
 import { getTimeSlots, createAppointment, getBarbers, getServices, getBarberAvailability } from '@/services/api';
-import { TEXT, BUSINESS } from '@/config/constants';
-import { formatWhatsAppMessage, openWhatsApp } from '@/utils/whatsapp';
+import { TEXT } from '@/config/constants';
 import type { TimeSlot, Service, Barber } from '@/types';
 import { useAuthStore } from '@/stores/useAuthStore';
 import {
@@ -41,22 +40,6 @@ function StepSuccess() {
     const store = useBookingStore();
     const navigate = useNavigate();
 
-    const handleWhatsApp = () => {
-        if (!store.barberName) return;
-        const msg = formatWhatsAppMessage('booking', {
-            services: store.services,
-            date: store.date,
-            startTime: (store.time ?? "00:00").split(':').map(Number).reduce((acc: any, val: number, i: number) => {
-                if (i === 0) acc.hour = val;
-                else acc.minute = val;
-                return acc;
-            }, { hour: 0, minute: 0 }),
-            barberName: store.barberName,
-            totalPrice: store.totalPrice(),
-        });
-        openWhatsApp(BUSINESS.phone, msg);
-    };
-
     return (
         <div className="text-center py-8">
             <motion.div
@@ -67,16 +50,9 @@ function StepSuccess() {
                 <Check size={40} />
             </motion.div>
             <h2 className="font-heading text-2xl font-bold mb-2 text-text-primary">Agendamento Realizado!</h2>
-            <p className="text-text-secondary mb-8">Seu horário foi reservado com sucesso. Deseja enviar um comprovante para a barbearia?</p>
-            
+            <p className="text-text-secondary mb-8">Seu horário foi reservado com sucesso.</p>
+
             <div className="space-y-3 px-4 max-w-sm mx-auto">
-                <button
-                    onClick={handleWhatsApp}
-                    className="w-full flex items-center justify-center gap-2 bg-success hover:bg-success/90 text-white font-semibold py-3.5 rounded-xl transition shadow-lg shadow-success/20"
-                >
-                    <Phone size={18} />
-                    Enviar para o WhatsApp
-                </button>
                 <button
                     onClick={() => {
                         store.reset();
@@ -373,12 +349,36 @@ function StepBarber() {
 function StepServices() {
     const { services: selectedServices, toggleService, totalDuration, totalPrice, barberId } = useBookingStore();
     const [allServices, setAllServices] = useState<Service[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        getServices(barberId === -1 ? undefined : barberId || undefined).then(setAllServices);
+        setLoading(true);
+        getServices(barberId === -1 ? undefined : barberId || undefined)
+            .then((list) => {
+                setAllServices(list);
+                // Remove serviços selecionados que não existem para o barbeiro atual
+                const validIds = new Set(list.map((s) => s.id));
+                const currentSelected = useBookingStore.getState().services;
+                const hasInvalid = currentSelected.some((sv) => !validIds.has(sv.id));
+                if (hasInvalid) {
+                    useBookingStore.setState({ services: [] });
+                }
+            })
+            .finally(() => setLoading(false));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [barberId]);
 
     const formatPrice = (price: number) => price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    if (!loading && allServices.length === 0) {
+        return (
+            <div className="p-6 rounded-2xl border-2 border-border bg-bg-card text-center">
+                <p className="text-sm text-text-secondary">
+                    O barbeiro selecionado não possui serviços disponíveis. Volte e escolha outro barbeiro.
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div>
@@ -704,9 +704,49 @@ function StepTime() {
     useEffect(() => {
         if (!date || !barberId || services.length === 0) return;
         setLoadingSlots(true);
-        const actualBarberId = barberId === -1 ? 1 : barberId;
+
+        if (barberId === -1) {
+            // "Sem preferência": escolhe o barbeiro com mais horários disponíveis
+            // que ofereça serviços equivalentes (mesmos nomes) aos selecionados.
+            (async () => {
+                const selectedNames = services.map(s => s.name.trim().toLowerCase());
+                const barbers = await getBarbers();
+                let best: { barberId: number; barberName: string; matchedServices: Service[]; slots: TimeSlot[] } | null = null;
+
+                for (const b of barbers) {
+                    const barberSvcs = await getServices(b.id).catch(() => [] as Service[]);
+                    const matched: Service[] = [];
+                    for (const name of selectedNames) {
+                        const found = barberSvcs.find(bs => bs.name.trim().toLowerCase() === name && bs.active);
+                        if (found) matched.push(found);
+                    }
+                    if (matched.length !== selectedNames.length) continue;
+                    const matchedIds = matched.map(m => m.id);
+                    const barberSlots = await getTimeSlots(b.id, date, matchedIds).catch(() => [] as TimeSlot[]);
+                    if (!best || barberSlots.length > best.slots.length) {
+                        best = { barberId: b.id, barberName: b.name, matchedServices: matched, slots: barberSlots };
+                    }
+                }
+
+                if (best) {
+                    // Troca para o barbeiro vencedor e ajusta os serviços selecionados
+                    // para os equivalentes deste barbeiro (mesmos nomes, IDs diferentes).
+                    // O efeito irá re-rodar com o novo barberId e carregar os slots normalmente.
+                    useBookingStore.setState({
+                        barberId: best.barberId,
+                        barberName: best.barberName,
+                        services: best.matchedServices,
+                    });
+                } else {
+                    setSlots([]);
+                    setLoadingSlots(false);
+                }
+            })();
+            return;
+        }
+
         const serviceIds = services.map(s => s.id);
-        getTimeSlots(actualBarberId, date, serviceIds).then((s) => {
+        getTimeSlots(barberId, date, serviceIds).then((s) => {
             setSlots(s);
             setLoadingSlots(false);
         });

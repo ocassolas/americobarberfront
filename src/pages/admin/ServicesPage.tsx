@@ -13,6 +13,9 @@ export function ServicesPage() {
     const [editing, setEditing] = useState<Service | null>(null);
     const [isNew, setIsNew] = useState(false);
     const [deleteId, setDeleteId] = useState<number | null>(null);
+    // IDs dos barbeiros selecionados ao criar um novo serviço (suporta múltiplos)
+    const [selectedBarberIds, setSelectedBarberIds] = useState<number[]>([]);
+    const [showBarberPicker, setShowBarberPicker] = useState(false);
     const addToast = useToastStore((s) => s.addToast);
 
     useEffect(() => {
@@ -27,19 +30,34 @@ export function ServicesPage() {
 
     const handleSave = async () => {
         if (!editing) return;
+
+        if (isNew) {
+            if (selectedBarberIds.length === 0) {
+                addToast('error', 'Selecione ao menos um barbeiro para este serviço.');
+                return;
+            }
+            // Cria um serviço por barbeiro selecionado
+            const created: Service[] = [];
+            for (const bId of selectedBarberIds) {
+                const saved = await saveService({ ...editing, barberId: bId });
+                created.push(saved);
+            }
+            setServices((prev) => [...prev, ...created]);
+            setEditing(null);
+            setSelectedBarberIds([]);
+            addToast('success', created.length > 1 ? `${created.length} serviços criados!` : 'Serviço criado!');
+            return;
+        }
+
+        // Edição: mantém um único barbeiro
         if (!editing.barberId) {
             addToast('error', 'Selecione um barbeiro para este serviço.');
             return;
         }
-
         const saved = await saveService(editing);
-        if (isNew) {
-            setServices((prev) => [...prev, saved]);
-        } else {
-            setServices((prev) => prev.map((s) => (s.id === saved.id ? saved : s)));
-        }
+        setServices((prev) => prev.map((s) => (s.id === saved.id ? saved : s)));
         setEditing(null);
-        addToast('success', isNew ? 'Serviço criado!' : 'Serviço atualizado!');
+        addToast('success', 'Serviço atualizado!');
     };
 
     const handleDelete = async () => {
@@ -52,6 +70,7 @@ export function ServicesPage() {
 
     const openNew = () => {
         setIsNew(true);
+        setSelectedBarberIds(barbers.length === 1 ? [barbers[0].id] : []);
         setEditing({
             id: 0,
             name: '',
@@ -62,6 +81,21 @@ export function ServicesPage() {
             active: true,
             barberId: barbers.length === 1 ? barbers[0].id : 0,
         });
+    };
+
+    const toggleBarberSelection = (id: number) => {
+        setSelectedBarberIds((prev) =>
+            prev.includes(id) ? prev.filter((b) => b !== id) : [...prev, id]
+        );
+    };
+
+    const getBarberSelectionLabel = () => {
+        if (selectedBarberIds.length === 0) return 'Selecione um barbeiro...';
+        if (selectedBarberIds.length === barbers.length) return 'Todos os barbeiros';
+        if (selectedBarberIds.length === 1) {
+            return barbers.find((b) => b.id === selectedBarberIds[0])?.name || '';
+        }
+        return `${selectedBarberIds.length} barbeiros selecionados`;
     };
 
     if (loading) {
@@ -156,16 +190,47 @@ export function ServicesPage() {
                                 </div>
                                 <div>
                                     <label className="text-xs font-medium mb-1 block uppercase tracking-wider text-text-secondary">Barbeiro Responsável</label>
-                                    <select
-                                        value={editing.barberId}
-                                        onChange={(e) => setEditing({ ...editing, barberId: parseInt(e.target.value, 10) })}
-                                        className="w-full bg-bg-input input-surface border border-border rounded-xl px-3 py-2.5 text-sm focus:border-accent outline-none transition"
-                                    >
-                                        <option value={0}>Selecione um barbeiro...</option>
-                                        {barbers.map(b => (
-                                            <option key={b.id} value={b.id}>{b.name}</option>
-                                        ))}
-                                    </select>
+                                    {isNew && barbers.length === 2 ? (
+                                        <select
+                                            value={
+                                                selectedBarberIds.length === 2
+                                                    ? 'both'
+                                                    : selectedBarberIds[0]?.toString() ?? '0'
+                                            }
+                                            onChange={(e) => {
+                                                const v = e.target.value;
+                                                if (v === 'both') setSelectedBarberIds(barbers.map((b) => b.id));
+                                                else if (v === '0') setSelectedBarberIds([]);
+                                                else setSelectedBarberIds([parseInt(v, 10)]);
+                                            }}
+                                            className="w-full bg-bg-input input-surface border border-border rounded-xl px-3 py-2.5 text-sm focus:border-accent outline-none transition"
+                                        >
+                                            <option value="0">Selecione um barbeiro...</option>
+                                            {barbers.map((b) => (
+                                                <option key={b.id} value={b.id}>{b.name}</option>
+                                            ))}
+                                            <option value="both">Ambos barbeiros</option>
+                                        </select>
+                                    ) : isNew && barbers.length >= 3 ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowBarberPicker(true)}
+                                            className="w-full bg-bg-input input-surface border border-border rounded-xl px-3 py-2.5 text-sm focus:border-accent outline-none transition text-left"
+                                        >
+                                            {getBarberSelectionLabel()}
+                                        </button>
+                                    ) : (
+                                        <select
+                                            value={editing.barberId}
+                                            onChange={(e) => setEditing({ ...editing, barberId: parseInt(e.target.value, 10) })}
+                                            className="w-full bg-bg-input input-surface border border-border rounded-xl px-3 py-2.5 text-sm focus:border-accent outline-none transition"
+                                        >
+                                            <option value={0}>Selecione um barbeiro...</option>
+                                            {barbers.map(b => (
+                                                <option key={b.id} value={b.id}>{b.name}</option>
+                                            ))}
+                                        </select>
+                                    )}
                                 </div>
                                 <div>
                                     <label className="text-xs font-medium mb-1 block uppercase tracking-wider text-text-secondary">Descrição (opcional)</label>
@@ -205,6 +270,50 @@ export function ServicesPage() {
                                 className="w-full mt-4 bg-accent hover:bg-accent-hover disabled:opacity-40 text-bg-primary font-semibold py-2.5 rounded-xl transition text-sm"
                             >
                                 Salvar
+                            </button>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Barber Picker Modal (3+ barbers) */}
+            <AnimatePresence>
+                {showBarberPicker && (
+                    <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4" onClick={() => setShowBarberPicker(false)}>
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-bg-card border border-border rounded-2xl p-6 max-w-sm w-full"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-heading font-semibold">Selecionar Barbeiros</h3>
+                                <button onClick={() => setShowBarberPicker(false)} className="p-1 hover:bg-white/10 rounded-lg transition" aria-label="Fechar">
+                                    <X size={18} />
+                                </button>
+                            </div>
+                            <div className="space-y-2 max-h-72 overflow-y-auto">
+                                {barbers.map((b) => {
+                                    const checked = selectedBarberIds.includes(b.id);
+                                    return (
+                                        <label key={b.id} className="flex items-center gap-3 p-3 rounded-xl border border-border hover:border-accent/40 cursor-pointer transition">
+                                            <input
+                                                type="checkbox"
+                                                checked={checked}
+                                                onChange={() => toggleBarberSelection(b.id)}
+                                                className="w-4 h-4 accent-accent"
+                                            />
+                                            <span className="text-sm">{b.name}</span>
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                            <button
+                                onClick={() => setShowBarberPicker(false)}
+                                className="w-full mt-4 bg-accent hover:bg-accent-hover text-bg-primary font-semibold py-2.5 rounded-xl transition text-sm"
+                            >
+                                Confirmar ({selectedBarberIds.length})
                             </button>
                         </motion.div>
                     </div>

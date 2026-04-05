@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, BellOff, User, Mail, Phone, Save, Loader2 } from 'lucide-react';
 import { TEXT } from '@/config/constants';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -13,10 +13,18 @@ export function SettingsPage() {
 
     const [name, setName] = useState(user?.name || '');
     const [email, setEmail] = useState(user?.email || '');
-    const [phone, setPhone] = useState(user?.phone || '');
+    const [phone, setPhone] = useState(maskPhone(user?.phone || ''));
     const [profilePicture, setProfilePicture] = useState(user?.profilePicture || '');
     const [pushEnabled, setPushEnabled] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [emailError, setEmailError] = useState('');
+    const [phoneError, setPhoneError] = useState('');
+
+    useEffect(() => {
+        if (user?.phone) setPhone(maskPhone(user.phone));
+    }, [user?.phone]);
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -33,8 +41,30 @@ export function SettingsPage() {
         }
     };
 
+    const validate = (): boolean => {
+        let valid = true;
+        if (!emailRegex.test(email.trim())) {
+            setEmailError('E-mail inválido.');
+            valid = false;
+        } else {
+            setEmailError('');
+        }
+        const digits = phone.replace(/\D/g, '');
+        if (digits.length !== 11) {
+            setPhoneError('Telefone deve ter 11 dígitos (DDD + número).');
+            valid = false;
+        } else {
+            setPhoneError('');
+        }
+        return valid;
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!validate()) {
+            addToast('error', 'Verifique os campos destacados.');
+            return;
+        }
         setLoading(true);
         try {
             const updated = await updateProfile({ name, email, phone, profilePicture });
@@ -92,11 +122,15 @@ export function SettingsPage() {
                         <div className="relative">
                             <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary/50" size={16} />
                             <input
+                                type="email"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="w-full bg-bg-input border border-border rounded-xl pl-10 pr-4 py-3 text-xs focus:border-accent outline-none transition"
+                                onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(''); }}
+                                onBlur={() => { if (email && !emailRegex.test(email.trim())) setEmailError('E-mail inválido.'); }}
+                                placeholder="voce@exemplo.com"
+                                className={`w-full bg-bg-input border rounded-xl pl-10 pr-4 py-3 text-xs focus:border-accent outline-none transition ${emailError ? 'border-error' : 'border-border'}`}
                             />
                         </div>
+                        {emailError && <p className="text-error text-[10px] mt-1 ml-1">{emailError}</p>}
                     </div>
 
                     <div>
@@ -105,10 +139,14 @@ export function SettingsPage() {
                             <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary/50" size={16} />
                             <input
                                 value={phone}
-                                onChange={(e) => setPhone(maskPhone(e.target.value))}
-                                className="w-full bg-bg-input border border-border rounded-xl pl-10 pr-4 py-3 text-xs font-mono focus:border-accent outline-none transition"
+                                onChange={(e) => { setPhone(maskPhone(e.target.value)); if (phoneError) setPhoneError(''); }}
+                                onBlur={() => { const digits = phone.replace(/\D/g, ''); if (phone && digits.length !== 11) setPhoneError('Telefone deve ter 11 dígitos (DDD + número).'); }}
+                                placeholder="(11) 99999-9999"
+                                maxLength={15}
+                                className={`w-full bg-bg-input border rounded-xl pl-10 pr-4 py-3 text-xs font-mono focus:border-accent outline-none transition ${phoneError ? 'border-error' : 'border-border'}`}
                             />
                         </div>
+                        {phoneError && <p className="text-error text-[10px] mt-1 ml-1">{phoneError}</p>}
                     </div>
 
                     <button

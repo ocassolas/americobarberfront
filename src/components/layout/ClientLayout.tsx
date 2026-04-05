@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { ClientHeader } from './ClientHeader';
 import { ClientFooter } from './ClientFooter';
 import { ToastContainer } from '@/components/shared/ToastContainer';
@@ -8,6 +8,9 @@ import { LoadingBar } from '@/components/shared/LoadingBar';
 import { HelpChatbot } from '@/components/shared/HelpChatbot';
 
 export function ClientLayout() {
+    const location = useLocation();
+    const hideHelpChatbot = location.pathname === '/meus-agendamentos';
+
     return (
         <div className="min-h-screen flex flex-col">
             <ClientHeader />
@@ -18,7 +21,7 @@ export function ClientLayout() {
             </main>
             <ClientFooter />
             <FloatingBookingButton />
-            <HelpChatbot />
+            {!hideHelpChatbot && <HelpChatbot />}
             <LoadingBar />
             <ToastContainer />
         </div>

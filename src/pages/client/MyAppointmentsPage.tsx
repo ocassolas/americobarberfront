@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Phone, Search, Calendar, Clock, Scissors, XCircle, AlertTriangle, User, CheckCircle2, X, History } from 'lucide-react';
+import { Calendar, Clock, XCircle, AlertTriangle, User, CheckCircle2, X, History, MoreVertical } from 'lucide-react';
 import { getAppointments, cancelAppointment, acceptProposal, rejectProposal, rescheduleAppointment } from '@/services/api';
 import { useToastStore } from '@/stores/useToastStore';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -23,6 +23,7 @@ export function MyAppointmentsPage() {
     const [cancelId, setCancelId] = useState<number | null>(null);
     const [rescheduleTarget, setRescheduleTarget] = useState<Appointment | null>(null);
     const [cancelReason, setCancelReason] = useState('');
+    const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
     const addToast = useToastStore((s) => s.addToast);
     const { user } = useAuthStore();
 
@@ -77,12 +78,8 @@ export function MyAppointmentsPage() {
 
     const handleConfirmReschedule = async (data: any) => {
         if (!rescheduleTarget) return;
-        try {
-            await rescheduleAppointment(rescheduleTarget.id, data);
-            fetchAppointments();
-        } catch (error) {
-            throw error;
-        }
+        await rescheduleAppointment(rescheduleTarget.id, data);
+        fetchAppointments();
     };
 
     const formatDate = (d: string) => {
@@ -139,9 +136,47 @@ export function MyAppointmentsPage() {
                                             </div>
                                             <p className="text-sm text-text-secondary">{apt.barberName}</p>
                                         </div>
-                                        <span className={`px-2.5 py-1 rounded-lg text-xs font-medium ${STATUS_MAP[apt.status]?.color || 'bg-border/50 text-text-secondary'}`}>
-                                            {STATUS_MAP[apt.status]?.label || apt.status}
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <span className={`px-2.5 py-1 rounded-lg text-xs font-medium ${STATUS_MAP[apt.status]?.color || 'bg-border/50 text-text-secondary'}`}>
+                                                {STATUS_MAP[apt.status]?.label || apt.status}
+                                            </span>
+                                            {apt.status === 'AGENDADO' && (
+                                                <div className="relative">
+                                                    <button
+                                                        onClick={() => setMenuOpenId(menuOpenId === apt.id ? null : apt.id)}
+                                                        className="p-1.5 rounded-lg text-accent hover:bg-accent/10 transition"
+                                                        aria-label="Mais opções"
+                                                    >
+                                                        <MoreVertical size={18} />
+                                                    </button>
+                                                    {menuOpenId === apt.id && (
+                                                        <>
+                                                            <div
+                                                                className="fixed inset-0 z-10"
+                                                                onClick={() => setMenuOpenId(null)}
+                                                            />
+                                                            <div className="absolute right-0 top-full mt-1 z-20 bg-bg-card border border-accent/30 rounded-xl shadow-lg shadow-black/40 overflow-hidden min-w-[180px]">
+                                                                <button
+                                                                    onClick={() => { setRescheduleTarget(apt); setMenuOpenId(null); }}
+                                                                    className="w-full px-4 py-2.5 text-xs text-accent hover:bg-accent/10 transition flex items-center gap-2 text-left"
+                                                                >
+                                                                    <History size={14} />
+                                                                    Reagendar
+                                                                </button>
+                                                                <div className="h-px bg-accent/10" />
+                                                                <button
+                                                                    onClick={() => { setCancelId(apt.id); setMenuOpenId(null); }}
+                                                                    className="w-full px-4 py-2.5 text-xs text-accent hover:bg-accent/10 transition flex items-center gap-2 text-left"
+                                                                >
+                                                                    <XCircle size={14} />
+                                                                    {TEXT.myAppointments.cancel}
+                                                                </button>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {apt.status === 'PROPOSTA_REAGENDAMENTO' && apt.proposedDate && (
@@ -155,14 +190,14 @@ export function MyAppointmentsPage() {
                                                 <p className="text-xs italic text-text-secondary mb-3">"{apt.barberMessage}"</p>
                                             )}
                                             <div className="flex gap-2">
-                                                <button 
+                                                <button
                                                     onClick={() => handleAccept(apt.id)}
                                                     className="flex-1 py-2 bg-success text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-success/90 transition"
                                                 >
                                                     <CheckCircle2 size={12} />
                                                     Aceitar
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={() => handleReject(apt.id)}
                                                     className="flex-1 py-2 border border-error text-error rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-error/5 transition"
                                                 >
@@ -183,37 +218,6 @@ export function MyAppointmentsPage() {
 
                                     <div className="flex items-center justify-between">
                                         <span className="font-mono font-semibold text-accent">{formatPrice(apt.totalPrice)}</span>
-                                        {(apt.status === 'AGENDADO' || apt.status === 'PROPOSTA_REAGENDAMENTO') && (
-                                            <div className="flex items-center gap-3">
-                                                <a
-                                                    href={`https://wa.me/55${apt.barberPhone?.replace(/\D/g, '')}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-xs text-success hover:text-success/80 transition flex items-center gap-1"
-                                                >
-                                                    <Phone size={14} />
-                                                    WhatsApp
-                                                </a>
-                                                {apt.status === 'AGENDADO' && (
-                                                    <>
-                                                        <button
-                                                            onClick={() => setRescheduleTarget(apt)}
-                                                            className="text-xs text-accent hover:text-accent/80 transition flex items-center gap-1"
-                                                        >
-                                                            <History size={14} />
-                                                            Reagendar
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setCancelId(apt.id)}
-                                                            className="text-xs text-error hover:text-error/80 transition flex items-center gap-1"
-                                                        >
-                                                            <XCircle size={14} />
-                                                            {TEXT.myAppointments.cancel}
-                                                        </button>
-                                                    </>
-                                                )}
-                                            </div>
-                                        )}
                                     </div>
                                 </motion.div>
                             ))}
@@ -286,6 +290,8 @@ export function MyAppointmentsPage() {
                     appointmentDate={rescheduleTarget.date}
                     appointmentTime={(rescheduleTarget.startTime as string).substring(0, 5)}
                     services={rescheduleTarget.services.map(s => s.name)}
+                    barberId={rescheduleTarget.barberId}
+                    serviceIds={rescheduleTarget.services.map(s => s.id)}
                 />
             )}
         </div>

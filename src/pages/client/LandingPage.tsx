@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import {
     MapPin, Phone, Star, Scissors, PenTool, Sparkles,
-    Eye, Palette, Droplets, ChevronRight, Calendar, Instagram, MessageCircle, Clock,
+    Eye, Palette, Droplets, ChevronRight, Calendar, Instagram, Clock,
     ArrowRight, LogIn, User as UserIcon, Navigation
 } from 'lucide-react';
 import { getBarbers, getServices } from '@/services/api';
@@ -392,26 +392,6 @@ export function LandingPage() {
                                 </Link>
                             </div>
                         )}
-                        <div className="landing-final-social">
-                            <a
-                                href={BUSINESS.instagram}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="landing-social-btn"
-                                aria-label="Instagram"
-                            >
-                                <Instagram size={20} />
-                            </a>
-                            <a
-                                href={BUSINESS.whatsapp}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="landing-social-btn"
-                                aria-label="WhatsApp"
-                            >
-                                <MessageCircle size={20} />
-                            </a>
-                        </div>
                     </div>
                 </Reveal>
             </section>

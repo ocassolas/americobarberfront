@@ -28,6 +28,8 @@ export interface LoginResponse {
     userId: number;
     name: string;
     email: string;
+    cpf?: string;
+    phone?: string;
     role: string;
     isBarber: boolean;
     isOwner: boolean;

@@ -174,9 +174,9 @@ export function AdminLayout() {
                             )}
                         </div>
                         {!collapsed && (
-                            <div className="flex flex-col">
-                                <span className="text-xs font-medium text-text-primary">Admin</span>
-                                <span className="text-[10px] text-text-secondary">Administrador</span>
+                            <div className="flex flex-col min-w-0">
+                                <span className="text-xs font-medium text-text-primary truncate">{user?.name || 'Admin'}</span>
+                                <span className="text-[10px] text-text-secondary">{user?.isOwner ? 'Administrador' : user?.isBarber ? 'Barbeiro' : 'Administrador'}</span>
                             </div>
                         )}
                     </div>
@@ -279,12 +279,16 @@ export function AdminLayout() {
                                 <div className="admin-sidebar-divider" />
 
                                 <div className="admin-sidebar-user">
-                                    <div className="admin-sidebar-avatar">
-                                        <User size={16} strokeWidth={1.8} />
+                                    <div className="admin-sidebar-avatar overflow-hidden">
+                                        {user?.profilePicture ? (
+                                            <img src={user.profilePicture} alt="Avatar" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <User size={16} strokeWidth={1.8} />
+                                        )}
                                     </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-xs font-medium text-text-primary">Admin</span>
-                                        <span className="text-[10px] text-text-secondary">Administrador</span>
+                                    <div className="flex flex-col min-w-0">
+                                        <span className="text-xs font-medium text-text-primary truncate">{user?.name || 'Admin'}</span>
+                                        <span className="text-[10px] text-text-secondary">{user?.isOwner ? 'Administrador' : user?.isBarber ? 'Barbeiro' : 'Administrador'}</span>
                                     </div>
                                 </div>
                             </div>
