@@ -14,9 +14,10 @@ function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string> {
         const image = new Image();
         image.crossOrigin = 'anonymous';
         image.onload = () => {
+            const TARGET_SIZE = 400; // Tamanho ideal para foto de perfil
             const canvas = document.createElement('canvas');
-            canvas.width = pixelCrop.width;
-            canvas.height = pixelCrop.height;
+            canvas.width = TARGET_SIZE;
+            canvas.height = TARGET_SIZE;
             const ctx = canvas.getContext('2d');
             if (!ctx) return reject(new Error('Canvas context not available'));
             ctx.drawImage(
@@ -27,10 +28,10 @@ function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string> {
                 pixelCrop.height,
                 0,
                 0,
-                pixelCrop.width,
-                pixelCrop.height
+                TARGET_SIZE, // Dimensiona para o tamanho alvo
+                TARGET_SIZE
             );
-            resolve(canvas.toDataURL('image/jpeg', 0.85));
+            resolve(canvas.toDataURL('image/jpeg', 0.80)); // 80% de qualidade para ser mais leve
         };
         image.onerror = reject;
         image.src = imageSrc;
@@ -104,8 +105,8 @@ export function AdminSettingsPage() {
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        if (file.size > 5 * 1024 * 1024) {
-            addToast('error', 'A imagem deve ter no máximo 5MB.');
+        if (file.size > 15 * 1024 * 1024) {
+            addToast('error', 'A imagem selecionada é muito pesada (máximo 15MB).');
             return;
         }
         const reader = new FileReader();
