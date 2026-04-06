@@ -166,7 +166,12 @@ export function AdminSettingsPage() {
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1.5 ml-1">Breve Descrição / Bio</label>
+                        <div className="flex items-center justify-between mb-1.5 ml-1">
+                            <label className="block text-xs font-bold text-text-secondary uppercase">Breve Descrição / Bio</label>
+                            {user?.descriptionUpdatedAt && (
+                                <span className="text-[10px] text-text-disabled">Atualizado em: {new Date(user.descriptionUpdatedAt).toLocaleDateString('pt-BR')}</span>
+                            )}
+                        </div>
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}

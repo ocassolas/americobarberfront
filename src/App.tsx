@@ -12,6 +12,7 @@ import { LandingPage } from '@/pages/client/LandingPage';
 import { BookingPage } from '@/pages/client/BookingPage';
 import { MyAppointmentsPage } from '@/pages/client/MyAppointmentsPage';
 import { SettingsPage } from '@/pages/client/SettingsPage';
+import { ClientHistoryPage } from '@/pages/client/ClientHistoryPage';
 import { ClientLoginPage } from '@/pages/client/ClientLoginPage';
 import { ClientRegisterPage } from '@/pages/client/ClientRegisterPage';
 
@@ -67,6 +68,7 @@ function App() {
           {/* Authenticated client routes */}
           <Route path="/agendar" element={<ClientGuard><BookingPage /></ClientGuard>} />
           <Route path="/meus-agendamentos" element={<ClientGuard><MyAppointmentsPage /></ClientGuard>} />
+          <Route path="/historico" element={<ClientGuard><ClientHistoryPage /></ClientGuard>} />
           <Route path="/configuracoes" element={<ClientGuard><SettingsPage /></ClientGuard>} />
         </Route>
 

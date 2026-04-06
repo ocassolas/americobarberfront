@@ -184,7 +184,7 @@ export function AdminBookingFAB() {
             {/* FAB */}
             <motion.button
                 onClick={() => setOpen(true)}
-                className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-accent hover:bg-accent-hover text-bg-primary rounded-full shadow-xl shadow-accent/30 flex items-center justify-center transition-colors"
+                className="fixed bottom-2 right-6 z-40 w-14 h-14 bg-accent hover:bg-accent-hover text-bg-primary rounded-full shadow-xl shadow-accent/30 flex items-center justify-center transition-colors"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 title="Novo Agendamento"
@@ -213,9 +213,8 @@ export function AdminBookingFAB() {
                                     <div className="flex items-center gap-1.5 mt-1">
                                         {ADMIN_STEPS.map((label, i) => (
                                             <div key={i} className="flex items-center gap-1">
-                                                <div className={`w-2 h-2 rounded-full transition-colors ${
-                                                    i < step ? 'bg-accent' : i === step ? 'bg-accent ring-2 ring-accent/30' : 'bg-border'
-                                                }`} />
+                                                <div className={`w-2 h-2 rounded-full transition-colors ${i < step ? 'bg-accent' : i === step ? 'bg-accent ring-2 ring-accent/30' : 'bg-border'
+                                                    }`} />
                                             </div>
                                         ))}
                                         <span className="text-xs text-text-secondary ml-2">{ADMIN_STEPS[step]}</span>
@@ -245,9 +244,8 @@ export function AdminBookingFAB() {
                                                 <button
                                                     key={c.id}
                                                     onClick={() => setSelectedClient(c)}
-                                                    className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
-                                                        selectedClient?.id === c.id ? 'border-accent bg-accent/5' : 'border-border bg-bg-card hover:border-accent/30'
-                                                    }`}
+                                                    className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${selectedClient?.id === c.id ? 'border-accent bg-accent/5' : 'border-border bg-bg-card hover:border-accent/30'
+                                                        }`}
                                                 >
                                                     <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent flex-shrink-0">
                                                         <User size={18} />
@@ -277,9 +275,8 @@ export function AdminBookingFAB() {
                                             <button
                                                 key={b.id}
                                                 onClick={() => { setSelectedBarber(b); setSelectedServices([]); }}
-                                                className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
-                                                    selectedBarber?.id === b.id ? 'border-accent bg-accent/5' : 'border-border bg-bg-card hover:border-accent/30'
-                                                }`}
+                                                className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${selectedBarber?.id === b.id ? 'border-accent bg-accent/5' : 'border-border bg-bg-card hover:border-accent/30'
+                                                    }`}
                                             >
                                                 <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center overflow-hidden flex-shrink-0">
                                                     {b.profilePicture ? (
@@ -310,9 +307,8 @@ export function AdminBookingFAB() {
                                                 <button
                                                     key={s.id}
                                                     onClick={() => toggleService(s)}
-                                                    className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
-                                                        selected ? 'border-accent bg-accent/5' : 'border-border bg-bg-card hover:border-accent/30'
-                                                    }`}
+                                                    className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${selected ? 'border-accent bg-accent/5' : 'border-border bg-bg-card hover:border-accent/30'
+                                                        }`}
                                                 >
                                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${selected ? 'bg-accent/20 text-accent' : 'bg-bg-input text-text-secondary'}`}>
                                                         <Scissors size={18} />
@@ -367,11 +363,10 @@ export function AdminBookingFAB() {
                                                         key={d.toISOString()}
                                                         disabled={unavailable}
                                                         onClick={() => setSelectedDate(formatDateStr(d))}
-                                                        className={`h-9 rounded-lg text-xs font-medium transition-all ${
-                                                            selected ? 'bg-accent text-bg-primary font-bold'
-                                                            : unavailable ? 'opacity-30 cursor-not-allowed text-text-disabled'
-                                                            : 'hover:bg-accent/10 text-text-primary'
-                                                        } ${todayMark && !selected ? 'ring-1 ring-accent/40' : ''}`}
+                                                        className={`h-9 rounded-lg text-xs font-medium transition-all ${selected ? 'bg-accent text-bg-primary font-bold'
+                                                                : unavailable ? 'opacity-30 cursor-not-allowed text-text-disabled'
+                                                                    : 'hover:bg-accent/10 text-text-primary'
+                                                            } ${todayMark && !selected ? 'ring-1 ring-accent/40' : ''}`}
                                                     >
                                                         {d.getDate()}
                                                     </button>
@@ -414,13 +409,12 @@ export function AdminBookingFAB() {
                                                                     key={slot.time}
                                                                     disabled={!slot.available}
                                                                     onClick={() => setSelectedTime(slot.time)}
-                                                                    className={`py-2 rounded-lg text-xs font-mono font-medium transition-all ${
-                                                                        selectedTime === slot.time
+                                                                    className={`py-2 rounded-lg text-xs font-mono font-medium transition-all ${selectedTime === slot.time
                                                                             ? 'bg-accent text-bg-primary shadow-lg shadow-accent/20'
                                                                             : slot.available
                                                                                 ? 'bg-bg-input text-text-primary hover:bg-accent/10'
                                                                                 : 'bg-bg-card text-text-disabled line-through cursor-not-allowed opacity-50'
-                                                                    }`}
+                                                                        }`}
                                                                 >
                                                                     {slot.time}
                                                                 </button>

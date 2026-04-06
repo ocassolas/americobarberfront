@@ -20,6 +20,7 @@ export interface UserResponse {
     slotIntervalMinutes: number;
     profilePicture?: string;
     description?: string;
+    descriptionUpdatedAt?: string;
 }
 
 export interface LoginResponse {
@@ -34,6 +35,8 @@ export interface LoginResponse {
     isBarber: boolean;
     isOwner: boolean;
     profilePicture?: string;
+    description?: string;
+    descriptionUpdatedAt?: string;
 }
 
 export interface Barber extends UserResponse {

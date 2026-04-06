@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, Calendar, Settings, ChevronDown, Scissors } from 'lucide-react';
+import { LogOut, Calendar, Settings, ChevronDown, Scissors, History } from 'lucide-react';
 import { BUSINESS } from '@/config/constants';
 import { useAuthStore } from '@/stores/useAuthStore';
 
@@ -91,6 +91,14 @@ export function ClientHeader() {
                                     >
                                         <Scissors size={16} />
                                         Meus Agendamentos
+                                    </Link>
+                                    <Link
+                                        to="/historico"
+                                        onClick={() => setMenuOpen(false)}
+                                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-white/5 hover:text-text-primary transition"
+                                    >
+                                        <History size={16} />
+                                        Histórico
                                     </Link>
                                     <Link
                                         to="/configuracoes"

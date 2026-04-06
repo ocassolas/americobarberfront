@@ -9,7 +9,7 @@ import { HelpChatbot } from '@/components/shared/HelpChatbot';
 
 export function ClientLayout() {
     const location = useLocation();
-    const hideHelpChatbot = location.pathname === '/meus-agendamentos';
+    const hideHelpChatbot = location.pathname === '/meus-agendamentos' || location.pathname === '/historico';
 
     return (
         <div className="min-h-screen flex flex-col">

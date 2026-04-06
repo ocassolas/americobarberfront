@@ -13,7 +13,7 @@ import {
     DollarSign,
     ChevronLeft
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 type QuestionInfo = {
     id: string;
@@ -118,6 +118,7 @@ export function HelpChatbot() {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedQuestion, setSelectedQuestion] = useState<QuestionInfo | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const location = useLocation();
 
     // Auto-scroll ao selecionar pergunta
     useEffect(() => {
@@ -125,6 +126,10 @@ export function HelpChatbot() {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [selectedQuestion]);
+
+    if (location.pathname === '/agendar') {
+        return null;
+    }
 
     return (
         <>

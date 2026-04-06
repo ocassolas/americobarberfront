@@ -37,6 +37,8 @@ export const useAuthStore = create<AuthStore>()(
                     assignedBarberId: null,
                     slotIntervalMinutes: 30, 
                     profilePicture: data.profilePicture,
+                    description: data.description,
+                    descriptionUpdatedAt: data.descriptionUpdatedAt,
                 }
             }),
             logout: () => set({ isAuthenticated: false, token: null, user: null }),
