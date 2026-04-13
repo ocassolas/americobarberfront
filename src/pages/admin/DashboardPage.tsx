@@ -212,9 +212,9 @@ export function DashboardPage() {
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <span className="text-xs text-text-secondary hidden sm:inline">{(apt.barberName || 'N/A').split(' ')[0]}</span>
+                                        <span className="text-xs text-text-secondary">{(apt.barberName || 'N/A').split(' ')[0]}</span>
                                         {apt.status === 'AGENDADO' ? (
-                                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
+                                            <div className="flex items-center gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition touch-visible">
                                                 <button
                                                     onClick={() => setProposeTarget(apt)}
                                                     className="bg-bg-card border border-border text-text-primary p-1.5 rounded-lg hover:bg-white/5 transition flex items-center gap-1.5 text-xs"

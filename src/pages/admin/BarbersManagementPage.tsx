@@ -194,7 +194,7 @@ export function BarbersManagementPage() {
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-bg-card border border-border rounded-3xl p-6 max-w-md w-full"
+                            className="bg-bg-card border border-border rounded-3xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="flex items-center justify-between mb-6">

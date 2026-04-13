@@ -186,7 +186,7 @@ export function AdminLayout() {
                             animate={{ x: 0 }}
                             exit={{ x: -300 }}
                             transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-                            className="admin-sidebar fixed inset-y-0 left-0 w-72 z-50 lg:hidden flex flex-col"
+                            className="admin-sidebar fixed inset-y-0 left-0 w-64 max-w-[calc(100vw-56px)] z-50 lg:hidden flex flex-col"
                         >
                             {/* Mobile header */}
                             <div className="admin-sidebar-header">

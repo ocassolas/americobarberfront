@@ -991,3 +991,119 @@ body.light .landing-social-btn {
 body.light .landing-section-alt {
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0) 100%);
 }
+
+/* ═══════════════════════════════════════════════
+   Mobile Responsiveness Utilities
+   ═══════════════════════════════════════════════ */
+
+/* Safe area padding for iPhones with home indicator / notch */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Ensure card-premium doesn't lift on touch devices (no hover effect) */
+@media (hover: none) and (pointer: coarse) {
+  .card-premium:hover {
+    transform: none;
+    border-color: var(--color-border);
+  }
+
+  /* Make hover-dependent UI always visible on touch */
+  .touch-visible {
+    opacity: 1 !important;
+  }
+}
+
+/* Mobile modal scrollability helper */
+.modal-scroll-content {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Native date/time inputs on mobile */
+input[type="date"],
+input[type="time"] {
+  -webkit-appearance: none;
+  min-height: 44px;
+}
+
+/* Prevent horizontal overflow on all pages */
+.overflow-x-guard {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Small screens adjustments (< 360px) */
+@media (max-width: 359px) {
+  .landing-hero-logo {
+    width: 200px;
+  }
+
+  .landing-hero-tagline {
+    font-size: 0.9rem;
+  }
+
+  .landing-cta-button {
+    padding: 14px 24px;
+    font-size: 0.9rem;
+  }
+
+  .landing-section {
+    padding: 60px 0;
+  }
+
+  .landing-section-title {
+    font-size: 1.6rem;
+  }
+
+  .landing-barber-card {
+    padding: 20px 16px;
+    gap: 14px;
+  }
+
+  .landing-barber-avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 1.1rem;
+  }
+
+  .landing-service-card {
+    padding: 20px 16px;
+  }
+
+  .landing-final-cta {
+    padding: 60px 16px 80px;
+  }
+
+  .admin-sidebar-header {
+    height: 72px;
+    padding: 0 8px;
+  }
+
+  .admin-sidebar-logo {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+/* Moderate small screens (360-400px) */
+@media (max-width: 400px) {
+  .landing-hero-content {
+    padding: 0 16px;
+  }
+
+  .landing-hero-social-proof {
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .landing-hero-stat {
+    font-size: 0.75rem;
+  }
+}

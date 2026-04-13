@@ -178,7 +178,7 @@ export function WorkHoursPage() {
                     <div className="space-y-2 mb-6">
                         {schedule.workDays.map((wd) => (
                             <div key={wd.dayOfWeek} className="py-2">
-                                <div className="flex items-center gap-3">
+                                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                                     <button
                                         onClick={() => handleToggleDay(barberIdx, wd.dayOfWeek)}
                                         className={`relative w-10 h-6 rounded-full transition-colors flex-shrink-0 ${wd.enabled ? 'bg-accent' : 'bg-border'}`}
@@ -188,21 +188,21 @@ export function WorkHoursPage() {
                                     >
                                         <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${wd.enabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
                                     </button>
-                                    <span className={`text-sm w-20 ${wd.enabled ? '' : 'text-text-disabled'}`}>{DAY_NAMES[wd.dayOfWeek]}</span>
+                                    <span className={`text-sm w-16 sm:w-20 flex-shrink-0 ${wd.enabled ? '' : 'text-text-disabled'}`}>{DAY_NAMES[wd.dayOfWeek]}</span>
                                     {wd.enabled && (
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 flex-wrap">
                                             <input
                                                 type="time"
                                                 value={wd.openTime}
                                                 onChange={(e) => handleTimeChange(barberIdx, wd.dayOfWeek, 'openTime', e.target.value)}
-                                                className="bg-bg-input input-surface border border-border rounded-lg px-2 py-1 text-xs font-mono focus:border-accent outline-none transition"
+                                                className="bg-bg-input input-surface border border-border rounded-lg px-2 py-1.5 text-xs font-mono focus:border-accent outline-none transition w-[90px]"
                                             />
                                             <span className="text-text-secondary text-xs">até</span>
                                             <input
                                                 type="time"
                                                 value={wd.closeTime}
                                                 onChange={(e) => handleTimeChange(barberIdx, wd.dayOfWeek, 'closeTime', e.target.value)}
-                                                className="bg-bg-input input-surface border border-border rounded-lg px-2 py-1 text-xs font-mono focus:border-accent outline-none transition"
+                                                className="bg-bg-input input-surface border border-border rounded-lg px-2 py-1.5 text-xs font-mono focus:border-accent outline-none transition w-[90px]"
                                             />
                                             <button
                                                 onClick={() => handleToggleBreak(barberIdx, wd.dayOfWeek)}
@@ -215,21 +215,21 @@ export function WorkHoursPage() {
                                     )}
                                 </div>
                                 {wd.enabled && wd.breakStart && (
-                                    <div className="flex items-center gap-2 ml-[7.5rem] mt-1.5">
+                                    <div className="flex items-center gap-2 mt-1.5 ml-12 sm:ml-[7.5rem] flex-wrap">
                                         <Coffee size={12} className="text-text-secondary" />
                                         <span className="text-xs text-text-secondary">Intervalo:</span>
                                         <input
                                             type="time"
                                             value={wd.breakStart}
                                             onChange={(e) => handleTimeChange(barberIdx, wd.dayOfWeek, 'breakStart', e.target.value)}
-                                            className="bg-bg-input input-surface border border-border rounded-lg px-2 py-1 text-xs font-mono focus:border-accent outline-none transition"
+                                            className="bg-bg-input input-surface border border-border rounded-lg px-2 py-1.5 text-xs font-mono focus:border-accent outline-none transition w-[90px]"
                                         />
                                         <span className="text-text-secondary text-xs">até</span>
                                         <input
                                             type="time"
                                             value={wd.breakEnd || ''}
                                             onChange={(e) => handleTimeChange(barberIdx, wd.dayOfWeek, 'breakEnd', e.target.value)}
-                                            className="bg-bg-input input-surface border border-border rounded-lg px-2 py-1 text-xs font-mono focus:border-accent outline-none transition"
+                                            className="bg-bg-input input-surface border border-border rounded-lg px-2 py-1.5 text-xs font-mono focus:border-accent outline-none transition w-[90px]"
                                         />
                                     </div>
                                 )}

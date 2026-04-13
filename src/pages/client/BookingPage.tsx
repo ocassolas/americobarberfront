@@ -169,7 +169,7 @@ export function BookingPage() {
                     </AnimatePresence>
                 </div>
 
-                <div className="fixed bottom-0 left-0 right-0 bg-bg-primary/95 backdrop-blur-xl border-t border-border p-4 md:static md:bg-transparent md:border-0 md:mt-8 z-30">
+                <div className="fixed bottom-0 left-0 right-0 bg-bg-primary/95 backdrop-blur-xl border-t border-border p-4 pb-safe md:static md:bg-transparent md:border-0 md:mt-8 z-30">
                     <div className="max-w-2xl mx-auto flex gap-3">
                         {store.step > 0 && store.step < 6 && (
                             <button
@@ -411,7 +411,7 @@ function StepServices() {
             </div>
 
             {/* Summary bar */}
-            <div className="fixed bottom-20 left-0 right-0 px-4 md:static md:mt-6 z-20">
+            <div className="fixed bottom-20 left-0 right-0 px-4 mb-safe md:static md:mt-6 z-20">
                 <div className="max-w-2xl mx-auto bg-bg-card border border-border rounded-2xl p-4 flex items-center justify-between">
                     {selectedServices.length > 0 ? (
                         <>

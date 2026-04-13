@@ -155,7 +155,7 @@ export function MyAppointmentsPage() {
                                                                 className="fixed inset-0 z-10"
                                                                 onClick={() => setMenuOpenId(null)}
                                                             />
-                                                            <div className="absolute right-0 top-full mt-1 z-20 bg-bg-card border border-accent/30 rounded-xl shadow-lg shadow-black/40 overflow-hidden min-w-[180px]">
+                                                            <div className="absolute right-0 top-full mt-1 z-20 bg-bg-card border border-accent/30 rounded-xl shadow-lg shadow-black/40 overflow-hidden min-w-[180px] max-w-[calc(100vw-48px)]">
                                                                 <button
                                                                     onClick={() => { setRescheduleTarget(apt); setMenuOpenId(null); }}
                                                                     className="w-full px-4 py-2.5 text-xs text-accent hover:bg-accent/10 transition flex items-center gap-2 text-left"

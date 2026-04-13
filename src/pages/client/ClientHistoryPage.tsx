@@ -374,7 +374,7 @@ export function ClientHistoryPage() {
                             initial={{ scale: 0.9, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            className="bg-bg-card border border-border rounded-3xl p-6 max-w-sm w-full shadow-2xl"
+                            className="bg-bg-card border border-border rounded-3xl p-6 max-w-sm w-full shadow-2xl max-h-[85vh] overflow-y-auto"
                             onClick={(e) => e.stopPropagation()}
                         >
                             {/* Status badge */}

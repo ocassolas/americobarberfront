@@ -141,8 +141,8 @@ export function HelpChatbot() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="fixed bottom-24 right-4 sm:right-6 w-[340px] max-w-[calc(100vw-32px)] bg-bg-primary border border-border shadow-2xl rounded-2xl overflow-hidden z-50 flex flex-col"
-                        style={{ maxHeight: 'calc(100vh - 120px)' }}
+                        className="fixed bottom-24 right-4 sm:right-6 w-[calc(100vw-32px)] sm:w-[340px] max-w-[400px] bg-bg-primary border border-border shadow-2xl rounded-2xl overflow-hidden z-50 flex flex-col"
+                        style={{ maxHeight: 'calc(100dvh - 120px)' }}
                     >
                         {/* Header */}
                         <div className="bg-bg-card p-4 border-b border-border flex items-center justify-between shadow-sm">
@@ -251,7 +251,7 @@ export function HelpChatbot() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 title="Dúvidas? Converse com nosso Assistente Visual"
-                className={`fixed z-40 right-4 sm:right-6 flex items-center justify-center w-[54px] h-[54px] shadow-xl shadow-bg-primary/50 transition-colors border ${isOpen
+                className={`fixed z-40 right-4 sm:right-6 flex items-center justify-center w-[52px] h-[52px] shadow-xl shadow-bg-primary/50 transition-colors border ${isOpen
                         ? 'bg-bg-card text-text-secondary border-border bottom-6'
                         : 'bg-bg-card text-accent border-accent/30 hover:bg-accent/10 bottom-4 sm:bottom-6'
                     } rounded-full`}

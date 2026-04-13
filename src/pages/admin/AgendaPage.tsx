@@ -216,7 +216,7 @@ export function AgendaPage() {
                     <motion.div
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        className="bg-bg-card border border-border rounded-2xl p-6 max-w-sm w-full"
+                        className="bg-bg-card border border-border rounded-2xl p-6 max-w-sm w-full max-h-[85vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex flex-col items-center mb-6">

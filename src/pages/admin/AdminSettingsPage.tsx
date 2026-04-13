@@ -298,7 +298,7 @@ export function AdminSettingsPage() {
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-bg-card border border-border rounded-3xl w-full max-w-md overflow-hidden shadow-2xl"
+                            className="bg-bg-card border border-border rounded-3xl w-full max-w-md max-h-[90dvh] overflow-hidden shadow-2xl"
                             onClick={(e) => e.stopPropagation()}
                         >
                             {/* Header */}
@@ -308,7 +308,7 @@ export function AdminSettingsPage() {
                             </div>
 
                             {/* Crop Area */}
-                            <div className="relative w-full" style={{ height: '340px' }}>
+                            <div className="relative w-full" style={{ height: 'min(340px, 50vh)' }}>
                                 <Cropper
                                     image={rawImage}
                                     crop={crop}
