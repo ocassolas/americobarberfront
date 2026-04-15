@@ -25,6 +25,7 @@ import { WorkHoursPage } from '@/pages/admin/WorkHoursPage';
 import { AdminSettingsPage } from '@/pages/admin/AdminSettingsPage';
 import { BarbersManagementPage } from '@/pages/admin/BarbersManagementPage';
 import { ClientsManagementPage } from '@/pages/admin/ClientsManagementPage';
+import { GalleryManagementPage } from '@/pages/admin/GalleryManagementPage';
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -86,6 +87,7 @@ function App() {
           <Route path="/admin/historico" element={<HistoryPage />} />
           <Route path="/admin/horarios" element={<WorkHoursPage />} />
           <Route path="/admin/configuracoes" element={<AdminSettingsPage />} />
+          <Route path="/admin/galeria" element={<SuperAdminGuard><GalleryManagementPage /></SuperAdminGuard>} />
         </Route>
 
         {/* Catch-all */}

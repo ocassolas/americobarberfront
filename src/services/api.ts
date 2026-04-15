@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient';
-import type { Appointment, AppointmentRequest, Barber, Service, TimeSlot, WorkSchedule, AvailabilityResponse, DayOff, LocalTime } from '@/types';
+import type { Appointment, AppointmentRequest, Barber, GalleryPhoto, Service, TimeSlot, WorkSchedule, AvailabilityResponse, DayOff, LocalTime } from '@/types';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 // Role-based helper
@@ -314,3 +314,29 @@ export async function saveSchedule(schedule: WorkSchedule): Promise<WorkSchedule
 
     return schedule;
 }
+
+// ================= GALLERY =================
+export async function getPublicGallery(): Promise<GalleryPhoto[]> {
+    const res = await apiClient.get<GalleryPhoto[]>('/public/gallery');
+    return res.data;
+}
+
+export async function getAdminGallery(): Promise<GalleryPhoto[]> {
+    const res = await apiClient.get<GalleryPhoto[]>('/admin/gallery');
+    return res.data;
+}
+
+export async function addGalleryPhoto(data: { imageData: string; title?: string; displayOrder?: number }): Promise<GalleryPhoto> {
+    const res = await apiClient.post<GalleryPhoto>('/admin/gallery', data);
+    return res.data;
+}
+
+export async function updateGalleryPhoto(id: number, data: { imageData?: string; title?: string; displayOrder?: number }): Promise<GalleryPhoto> {
+    const res = await apiClient.put<GalleryPhoto>(`/admin/gallery/${id}`, data);
+    return res.data;
+}
+
+export async function deleteGalleryPhoto(id: number): Promise<void> {
+    await apiClient.delete(`/admin/gallery/${id}`);
+}
+

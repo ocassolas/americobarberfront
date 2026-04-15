@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
     LayoutDashboard, Calendar, Scissors, Clock, BarChart3,
     Settings, LogOut, Menu, X, ChevronLeft, ChevronRight,
-    User, Users,
+    User, Users, Image,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -22,6 +22,7 @@ const NAV_MAIN = [
     { path: '/admin/clientes', label: TEXT.admin.clients, icon: Users },
     { path: '/admin/historico', label: TEXT.admin.history, icon: BarChart3 },
     { path: '/admin/horarios', label: TEXT.admin.workHours, icon: Clock },
+    { path: '/admin/galeria', label: TEXT.admin.gallery, icon: Image },
 ] as const;
 
 const NAV_BOTTOM = [
@@ -77,7 +78,7 @@ export function AdminLayout() {
                             Menu Principal
                         </span>
                     )}
-                    {NAV_MAIN.filter(item => item.path !== '/admin/barbeiros' || user?.isOwner).map((item) => {
+                    {NAV_MAIN.filter(item => (item.path !== '/admin/barbeiros' && item.path !== '/admin/galeria') || user?.isOwner).map((item) => {
                         const active = location.pathname === item.path;
                         return (
                             <Link
@@ -212,7 +213,7 @@ export function AdminLayout() {
                                 <span className="admin-sidebar-section-label">
                                     Menu Principal
                                 </span>
-                                {NAV_MAIN.filter(item => item.path !== '/admin/barbeiros' || user?.isOwner).map((item) => {
+                                {NAV_MAIN.filter(item => (item.path !== '/admin/barbeiros' && item.path !== '/admin/galeria') || user?.isOwner).map((item) => {
                                     const active = location.pathname === item.path;
                                     return (
                                         <Link

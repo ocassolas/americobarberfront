@@ -175,3 +175,12 @@ export interface BookingState {
     clientCpf: string;
     notes: string;
 }
+
+export interface GalleryPhoto {
+    id: number;
+    imageData: string;
+    title?: string;
+    displayOrder: number;
+    createdAt: string;
+}
+

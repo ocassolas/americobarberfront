@@ -64,6 +64,7 @@ export const TEXT = {
         barbers: 'Colaboradores',
         clients: 'Clientes',
         settings: 'Configurações',
+        gallery: 'Galeria',
         logout: 'Sair',
     },
     settings: {

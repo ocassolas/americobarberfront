@@ -1,13 +1,13 @@
 import { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useInView, useScroll, useTransform } from 'framer-motion';
+import { motion, useInView, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import {
     MapPin, Phone, Star, Scissors, PenTool, Sparkles,
     Eye, Palette, Droplets, ChevronRight, Calendar, Instagram, Clock,
     ArrowRight, LogIn, User as UserIcon, Navigation
 } from 'lucide-react';
-import { getBarbers, getServices } from '@/services/api';
-import type { Barber, Service } from '@/types';
+import { getBarbers, getServices, getPublicGallery } from '@/services/api';
+import type { Barber, Service, GalleryPhoto } from '@/types';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { BUSINESS, TEXT } from '@/config/constants';
 
@@ -77,10 +77,13 @@ export function LandingPage() {
     const heroRef = useRef(null);
     const [barbers, setBarbers] = useState<Barber[]>([]);
     const [services, setServices] = useState<Service[]>([]);
+    const [gallery, setGallery] = useState<GalleryPhoto[]>([]);
+    const [lightboxImg, setLightboxImg] = useState<string | null>(null);
 
     useEffect(() => {
         getBarbers().then(setBarbers).catch(console.error);
         getServices().then(setServices).catch(console.error);
+        getPublicGallery().then(setGallery).catch(console.error);
     }, []);
 
     const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
@@ -283,6 +286,60 @@ export function LandingPage() {
                     </Reveal>
                 </div>
             </section>
+
+            {/* ═══════════ GALERIA ═══════════ */}
+            {gallery.length > 0 && (
+                <section className="landing-section">
+                    <div className="max-w-6xl mx-auto px-4">
+                        <SectionTitle subtitle="Nosso Trabalho" title="Galeria de Cortes" />
+                        <StaggerContainer className="landing-gallery-grid">
+                            {gallery.map((photo, idx) => (
+                                <motion.div
+                                    key={photo.id}
+                                    variants={staggerChild}
+                                    className="landing-gallery-item"
+                                    onClick={() => setLightboxImg(photo.imageData)}
+                                >
+                                    <img
+                                        src={photo.imageData}
+                                        alt={photo.title || `Corte ${idx + 1}`}
+                                        loading="lazy"
+                                    />
+                                    <div className="landing-gallery-overlay">
+                                        {photo.title && <span className="landing-gallery-title">{photo.title}</span>}
+                                        <span className="landing-gallery-zoom">Ampliar</span>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </StaggerContainer>
+                    </div>
+                </section>
+            )}
+
+            {/* Lightbox */}
+            <AnimatePresence>
+                {lightboxImg && (
+                    <motion.div
+                        className="landing-lightbox"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setLightboxImg(null)}
+                    >
+                        <button className="landing-lightbox-close" onClick={() => setLightboxImg(null)}>
+                            ✕
+                        </button>
+                        <motion.img
+                            src={lightboxImg}
+                            alt="Corte ampliado"
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            className="landing-lightbox-img"
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* ═══════════ INFORMAÇÕES ═══════════ */}
             <section className="landing-section">
