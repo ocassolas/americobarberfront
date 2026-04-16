@@ -449,12 +449,17 @@ function StepDate() {
         if (!barberId || barberId === -1) return;
         setLoadingAvail(true);
 
-        // Fetch days off and availability in parallel
         Promise.all([
-            apiClient.get<string[]>(`/clients/barbers/${barberId}/date-off`).then(res => res.data).catch(() => []),
+            apiClient.get<any[]>(`/clients/barbers/${barberId}/date-off`).then(res => res.data).catch(() => []),
             getBarberAvailability(barberId),
         ]).then(([daysOffData, availability]) => {
-            setDaysOff(daysOffData);
+            const normalizedDaysOff = daysOffData.map((d: any) => {
+                if (Array.isArray(d) && d.length >= 3) {
+                    return `${d[0]}-${String(d[1]).padStart(2, '0')}-${String(d[2]).padStart(2, '0')}`;
+                }
+                return String(d);
+            });
+            setDaysOff(normalizedDaysOff);
             // Convert BE dayOfWeek (1=Mon..7=Sun) to JS dayOfWeek (0=Sun..6=Sat)
             const activeDays = availability.map(a => a.dayOfWeek === 7 ? 0 : a.dayOfWeek);
             setWorkDays(activeDays);

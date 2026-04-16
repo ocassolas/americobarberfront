@@ -35,7 +35,7 @@ export function WorkHoursPage() {
         });
     };
 
-    const handleTimeChange = (barberIdx: number, dayOfWeek: number, field: 'openTime' | 'closeTime' | 'breakStart' | 'breakEnd', value: string) => {
+    const handleTimeChange = (barberIdx: number, dayOfWeek: number, field: 'openTime' | 'closeTime', value: string) => {
         setSchedules((prev) => {
             const copy = [...prev];
             const schedule = { ...copy[barberIdx] };
@@ -47,16 +47,59 @@ export function WorkHoursPage() {
         });
     };
 
+    const handleBreakChange = (barberIdx: number, dayOfWeek: number, breakIdx: number, field: 'startTime' | 'endTime', value: string) => {
+        setSchedules((prev) => {
+            const copy = [...prev];
+            const schedule = { ...copy[barberIdx] };
+            schedule.workDays = schedule.workDays.map((wd) => {
+                if (wd.dayOfWeek !== dayOfWeek) return wd;
+                const newBreaks = [...wd.breaks];
+                newBreaks[breakIdx] = { ...newBreaks[breakIdx], [field]: value || '' };
+                return { ...wd, breaks: newBreaks };
+            });
+            copy[barberIdx] = schedule;
+            return copy;
+        });
+    };
+
+    const handleAddBreak = (barberIdx: number, dayOfWeek: number) => {
+        setSchedules((prev) => {
+            const copy = [...prev];
+            const schedule = { ...copy[barberIdx] };
+            schedule.workDays = schedule.workDays.map((wd) => {
+                if (wd.dayOfWeek !== dayOfWeek) return wd;
+                return { ...wd, breaks: [...wd.breaks, { startTime: '12:00', endTime: '13:00' }] };
+            });
+            copy[barberIdx] = schedule;
+            return copy;
+        });
+    };
+
+    const handleRemoveBreak = (barberIdx: number, dayOfWeek: number, breakIdx: number) => {
+        setSchedules((prev) => {
+            const copy = [...prev];
+            const schedule = { ...copy[barberIdx] };
+            schedule.workDays = schedule.workDays.map((wd) => {
+                if (wd.dayOfWeek !== dayOfWeek) return wd;
+                const newBreaks = [...wd.breaks];
+                newBreaks.splice(breakIdx, 1);
+                return { ...wd, breaks: newBreaks };
+            });
+            copy[barberIdx] = schedule;
+            return copy;
+        });
+    };
+
     const handleToggleBreak = (barberIdx: number, dayOfWeek: number) => {
         setSchedules((prev) => {
             const copy = [...prev];
             const schedule = { ...copy[barberIdx] };
             schedule.workDays = schedule.workDays.map((wd) => {
                 if (wd.dayOfWeek !== dayOfWeek) return wd;
-                if (wd.breakStart) {
-                    return { ...wd, breakStart: null, breakEnd: null };
+                if (wd.breaks && wd.breaks.length > 0) {
+                    return { ...wd, breaks: [] };
                 } else {
-                    return { ...wd, breakStart: '12:00', breakEnd: '13:00' };
+                    return { ...wd, breaks: [{ startTime: '12:00', endTime: '13:00' }] };
                 }
             });
             copy[barberIdx] = schedule;
@@ -206,33 +249,43 @@ export function WorkHoursPage() {
                                             />
                                             <button
                                                 onClick={() => handleToggleBreak(barberIdx, wd.dayOfWeek)}
-                                                title={wd.breakStart ? 'Remover intervalo' : 'Adicionar intervalo'}
-                                                className={`p-1.5 rounded-lg transition text-xs ${wd.breakStart ? 'bg-accent/10 text-accent' : 'hover:bg-white/5 text-text-disabled'}`}
+                                                title={wd.breaks && wd.breaks.length > 0 ? 'Remover todos os intervalos' : 'Adicionar intervalo'}
+                                                className={`p-1.5 rounded-lg transition text-xs ${wd.breaks && wd.breaks.length > 0 ? 'bg-accent/10 text-accent' : 'hover:bg-white/5 text-text-disabled'}`}
                                             >
                                                 <Coffee size={14} />
                                             </button>
                                         </div>
                                     )}
                                 </div>
-                                {wd.enabled && wd.breakStart && (
-                                    <div className="flex items-center gap-2 mt-1.5 ml-12 sm:ml-[7.5rem] flex-wrap">
+                                {wd.enabled && wd.breaks && wd.breaks.map((brk, idx) => (
+                                    <div key={idx} className="flex items-center gap-2 mt-1.5 ml-12 sm:ml-[7.5rem] flex-wrap">
                                         <Coffee size={12} className="text-text-secondary" />
                                         <span className="text-xs text-text-secondary">Intervalo:</span>
                                         <input
                                             type="time"
-                                            value={wd.breakStart}
-                                            onChange={(e) => handleTimeChange(barberIdx, wd.dayOfWeek, 'breakStart', e.target.value)}
+                                            value={brk.startTime}
+                                            onChange={(e) => handleBreakChange(barberIdx, wd.dayOfWeek, idx, 'startTime', e.target.value)}
                                             className="bg-bg-input input-surface border border-border rounded-lg px-2 py-1.5 text-xs font-mono focus:border-accent outline-none transition w-[90px]"
                                         />
                                         <span className="text-text-secondary text-xs">até</span>
                                         <input
                                             type="time"
-                                            value={wd.breakEnd || ''}
-                                            onChange={(e) => handleTimeChange(barberIdx, wd.dayOfWeek, 'breakEnd', e.target.value)}
+                                            value={brk.endTime}
+                                            onChange={(e) => handleBreakChange(barberIdx, wd.dayOfWeek, idx, 'endTime', e.target.value)}
                                             className="bg-bg-input input-surface border border-border rounded-lg px-2 py-1.5 text-xs font-mono focus:border-accent outline-none transition w-[90px]"
                                         />
+                                        {idx === wd.breaks.length - 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleAddBreak(barberIdx, wd.dayOfWeek)}
+                                                title="Adicionar novo intervalo"
+                                                className="p-1.5 rounded-lg border border-border hover:border-accent/30 bg-bg-input hover:bg-white/5 text-text-secondary transition flex items-center justify-center shrink-0"
+                                            >
+                                                <Plus size={14} />
+                                            </button>
+                                        )}
                                     </div>
-                                )}
+                                ))}
                             </div>
                         ))}
                     </div>

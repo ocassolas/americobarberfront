@@ -213,11 +213,13 @@ function assembleSchedule(barberId: number, barberName: string, avail: Availabil
                 enabled: true,
                 openTime: (slot.startTime as unknown as string).substring(0, 5),
                 closeTime: (slot.endTime as unknown as string).substring(0, 5),
-                breakStart: slot.breakStartTime ? (slot.breakStartTime as unknown as string).substring(0, 5) : null,
-                breakEnd: slot.breakEndTime ? (slot.breakEndTime as unknown as string).substring(0, 5) : null,
+                breaks: slot.breaks && slot.breaks.length > 0 ? slot.breaks.map((b: any) => ({
+                    startTime: typeof b.startTime === 'string' ? b.startTime.substring(0, 5) : b.startTime,
+                    endTime: typeof b.endTime === 'string' ? b.endTime.substring(0, 5) : b.endTime
+                })) : [],
             };
         }
-        return { dayOfWeek: feDay, enabled: false, openTime: '08:00', closeTime: '20:00', breakStart: null, breakEnd: null };
+        return { dayOfWeek: feDay, enabled: false, openTime: '08:00', closeTime: '20:00', breaks: [] };
     });
 
     const daysOff: DayOff[] = daysOffDates.map((date, idx) => ({
@@ -295,8 +297,10 @@ export async function saveSchedule(schedule: WorkSchedule): Promise<WorkSchedule
                 dayOfWeek: beDay,
                 startTime: wd.openTime.substring(0, 5),
                 endTime: wd.closeTime.substring(0, 5),
-                breakStartTime: wd.breakStart || null,
-                breakEndTime: wd.breakEnd || null,
+                breaks: wd.breaks.map(b => ({
+                    startTime: b.startTime,
+                    endTime: b.endTime
+                })),
             };
         });
 

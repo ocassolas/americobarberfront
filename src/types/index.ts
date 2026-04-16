@@ -102,16 +102,14 @@ export interface AvailabilityResponse {
     dayOfWeek: number;
     startTime: string; // "HH:mm" string as per @JsonFormat on backend
     endTime: string;
-    breakStartTime: string | null;
-    breakEndTime: string | null;
+    breaks: BreakInterval[];
 }
 
 export interface AvailabilityRequest {
     dayOfWeek: number;
     startTime: string; // "HH:mm" string
     endTime: string;
-    breakStartTime?: string | null;
-    breakEndTime?: string | null;
+    breaks: BreakInterval[];
 }
 
 export interface WorkSchedule {
@@ -126,8 +124,12 @@ export interface WorkDay {
     enabled: boolean;
     openTime: string; // Keep string for UI "HH:mm" handling
     closeTime: string;
-    breakStart: string | null;
-    breakEnd: string | null;
+    breaks: BreakInterval[];
+}
+
+export interface BreakInterval {
+    startTime: string;
+    endTime: string;
 }
 
 export interface DayOff {
