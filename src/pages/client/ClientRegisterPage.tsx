@@ -42,6 +42,18 @@ export function ClientRegisterPage() {
             return;
         }
 
+        if (formData.cpf.length < 14) {
+            setError('Por favor, informe um CPF completo.');
+            setLoading(false);
+            return;
+        }
+
+        if (formData.phone.length < 14) {
+            setError('Por favor, informe um número de telefone completo.');
+            setLoading(false);
+            return;
+        }
+
         try {
             await apiClient.post('/auth/register', {
                 name: formData.name,
@@ -52,7 +64,7 @@ export function ClientRegisterPage() {
                 role: 'ROLE_CLIENT'
             });
 
-            addToast('success', 'Conta criada com sucesso! Agora você pode fazer login.');
+            addToast('success', 'Conta criada com sucesso! Verifique seu email para confirmá-la antes de fazer login.');
             navigate('/entrar');
         } catch (err: any) {
             console.error(err);
@@ -127,6 +139,7 @@ export function ClientRegisterPage() {
                                 <input
                                     name="phone"
                                     required
+                                    maxLength={15}
                                     value={formData.phone}
                                     onChange={handleChange}
                                     className="w-full bg-bg-input input-surface border border-border/50 rounded-2xl pl-12 pr-4 py-3 text-sm focus:border-accent focus:ring-1 focus:ring-accent/30 transition outline-none"
@@ -144,6 +157,7 @@ export function ClientRegisterPage() {
                                 <input
                                     name="cpf"
                                     required
+                                    maxLength={14}
                                     value={formData.cpf}
                                     onChange={handleChange}
                                     className="w-full bg-bg-input input-surface border border-border/50 rounded-2xl pl-12 pr-4 py-3 text-sm focus:border-accent focus:ring-1 focus:ring-accent/30 transition outline-none"
