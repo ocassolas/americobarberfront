@@ -42,8 +42,6 @@ export function ClientLoginPage() {
             console.error(err);
             if (err.response?.status === 401) {
                 setError('E-mail ou senha incorretos.');
-            } else if (err.response?.data?.message) {
-                setError(err.response.data.message);
             } else {
                 setError('Erro ao conectar com o servidor. Tente novamente mais tarde.');
             }

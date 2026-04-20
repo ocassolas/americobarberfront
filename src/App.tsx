@@ -15,7 +15,6 @@ import { SettingsPage } from '@/pages/client/SettingsPage';
 import { ClientHistoryPage } from '@/pages/client/ClientHistoryPage';
 import { ClientLoginPage } from '@/pages/client/ClientLoginPage';
 import { ClientRegisterPage } from '@/pages/client/ClientRegisterPage';
-import { EmailConfirmationPage } from '@/pages/client/EmailConfirmationPage';
 
 // Admin pages
 import { DashboardPage } from '@/pages/admin/DashboardPage';
@@ -77,7 +76,6 @@ function App() {
         {/* Client Auth */}
         <Route path="/entrar" element={<ClientLoginPage />} />
         <Route path="/cadastrar" element={<ClientRegisterPage />} />
-        <Route path="/confirm-email" element={<EmailConfirmationPage />} />
 
         {/* Admin authenticated routes */}
         <Route element={<AdminGuard><AdminLayout /></AdminGuard>}>
