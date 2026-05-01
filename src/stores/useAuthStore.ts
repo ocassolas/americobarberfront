@@ -39,6 +39,7 @@ export const useAuthStore = create<AuthStore>()(
                     profilePicture: data.profilePicture,
                     description: data.description,
                     descriptionUpdatedAt: data.descriptionUpdatedAt,
+                    blocked: data.blocked,
                 }
             }),
             logout: () => set({ isAuthenticated: false, token: null, user: null }),

@@ -21,6 +21,7 @@ export interface UserResponse {
     profilePicture?: string;
     description?: string;
     descriptionUpdatedAt?: string;
+    blocked?: boolean;
 }
 
 export interface LoginResponse {
@@ -37,10 +38,10 @@ export interface LoginResponse {
     profilePicture?: string;
     description?: string;
     descriptionUpdatedAt?: string;
+    blocked?: boolean;
 }
 
 export interface Barber extends UserResponse {
-    // Frontend specific properties for UI that don't come from API directly
     specialty?: string;
     bio?: string;
     avatar?: string;
@@ -52,7 +53,7 @@ export interface Service {
     name: string;
     durationMinutes: number;
     price: number;
-    icon?: string; // Frontend specific property
+    icon?: string;
     description: string;
     active: boolean;
     barberId: number;
@@ -75,7 +76,7 @@ export interface Appointment {
     date: string;
     startTime: string;
     endTime: string;
-    status: 'AGENDADO' | 'CANCELADO_POR_CLIENTE' | 'CANCELADO_POR_BARBEIRO' | 'CONCLUIDO' | 'PROPOSTA_REAGENDAMENTO' | 'FINALIZADO';
+    status: 'AGENDADO' | 'CANCELADO_POR_CLIENTE' | 'CANCELADO_POR_BARBEIRO' | 'CONCLUIDO' | 'PROPOSTA_REAGENDAMENTO' | 'FINALIZADO' | 'NO_SHOW';
     observation: string;
     barberMessage: string;
     proposedDate: string | null;
@@ -92,7 +93,7 @@ export interface AppointmentRequest {
     barberId: number;
     serviceIds: number[];
     date: string;
-    startTime: string; // "HH:mm" string as per @JsonFormat on backend
+    startTime: string;
     observation?: string;
 }
 
@@ -100,14 +101,14 @@ export interface AvailabilityResponse {
     id: number;
     barberId: number;
     dayOfWeek: number;
-    startTime: string; // "HH:mm" string as per @JsonFormat on backend
+    startTime: string;
     endTime: string;
     breaks: BreakInterval[];
 }
 
 export interface AvailabilityRequest {
     dayOfWeek: number;
-    startTime: string; // "HH:mm" string
+    startTime: string;
     endTime: string;
     breaks: BreakInterval[];
 }
@@ -122,7 +123,7 @@ export interface WorkSchedule {
 export interface WorkDay {
     dayOfWeek: number;
     enabled: boolean;
-    openTime: string; // Keep string for UI "HH:mm" handling
+    openTime: string;
     closeTime: string;
     breaks: BreakInterval[];
 }
@@ -133,10 +134,10 @@ export interface BreakInterval {
 }
 
 export interface DayOff {
-    id: string | number; // String for mocks usually
+    id: string | number;
     barberId: number;
-    date: string; // ISO yyyy-MM-dd
-    reason: string; // optional from UI perspective
+    date: string;
+    reason: string;
 }
 
 export interface BusinessConfig {
@@ -186,3 +187,22 @@ export interface GalleryPhoto {
     createdAt: string;
 }
 
+export type CancellationPenaltyStatus = 'PENDING' | 'AWAITING_REVIEW' | 'CONFIRMED' | 'REJECTED';
+
+export interface CancellationPenalty {
+    id: number;
+    clientId: number;
+    clientName: string;
+    clientPhone: string;
+    appointmentId: number;
+    barberName: string;
+    serviceNames: string;
+    appointmentDate: string;
+    appointmentTime: string;
+    amount: number;
+    status: CancellationPenaltyStatus;
+    proofImageData?: string;
+    createdAt: string;
+    reviewedAt?: string;
+    reviewedByName?: string;
+}

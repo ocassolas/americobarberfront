@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
     LayoutDashboard, Calendar, Scissors, Clock, BarChart3,
     Settings, LogOut, Menu, X, ChevronLeft, ChevronRight,
-    User, Users, Image,
+    User, Users, Image, AlertTriangle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -23,6 +23,7 @@ const NAV_MAIN = [
     { path: '/admin/historico', label: TEXT.admin.history, icon: BarChart3 },
     { path: '/admin/horarios', label: TEXT.admin.workHours, icon: Clock },
     { path: '/admin/galeria', label: TEXT.admin.gallery, icon: Image },
+    { path: '/admin/cancelamentos', label: TEXT.admin.cancellations, icon: AlertTriangle },
 ] as const;
 
 const NAV_BOTTOM = [

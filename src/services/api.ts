@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient';
-import type { Appointment, AppointmentRequest, Barber, GalleryPhoto, Service, TimeSlot, WorkSchedule, AvailabilityResponse, DayOff, LocalTime } from '@/types';
+import type { Appointment, AppointmentRequest, Barber, CancellationPenalty, GalleryPhoto, Service, TimeSlot, WorkSchedule, AvailabilityResponse, DayOff, LocalTime, CancellationPenaltyStatus } from '@/types';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 // Role-based helper
@@ -344,3 +344,54 @@ export async function deleteGalleryPhoto(id: number): Promise<void> {
     await apiClient.delete(`/admin/gallery/${id}`);
 }
 
+// ================= CANCELLATION PENALTIES =================
+
+export async function getClientPendingPenalty(): Promise<CancellationPenalty | null> {
+    const res = await apiClient.get<CancellationPenalty | null>('/clients/penalties/pending');
+    return res.data;
+}
+
+export async function submitPenaltyProof(penaltyId: number, proofImageData: string): Promise<CancellationPenalty> {
+    const res = await apiClient.post<CancellationPenalty>(`/clients/penalties/${penaltyId}/proof`, { proofImageData });
+    return res.data;
+}
+
+export async function getAdminPenalties(status?: CancellationPenaltyStatus): Promise<CancellationPenalty[]> {
+    const params = status ? { status } : {};
+    const res = await apiClient.get<CancellationPenalty[]>('/admin/penalties', { params });
+    return res.data;
+}
+
+export async function confirmPenalty(penaltyId: number): Promise<CancellationPenalty> {
+    const res = await apiClient.put<CancellationPenalty>(`/admin/penalties/${penaltyId}/confirm`);
+    return res.data;
+}
+
+export async function rejectPenalty(penaltyId: number): Promise<CancellationPenalty> {
+    const res = await apiClient.put<CancellationPenalty>(`/admin/penalties/${penaltyId}/reject`);
+    return res.data;
+}
+
+export async function blockClient(clientId: number): Promise<void> {
+    await apiClient.put(`/admin/clients/${clientId}/block`);
+}
+
+export async function unblockClient(clientId: number): Promise<void> {
+    await apiClient.put(`/admin/clients/${clientId}/unblock`);
+}
+
+// ================= SYSTEM CONFIG =================
+
+export async function getPublicPixKey(): Promise<string> {
+    const res = await apiClient.get<{ key: string; value: string }>('/public/config/PIX_KEY');
+    return res.data.value || '';
+}
+
+export async function getAdminConfig(key: string): Promise<string> {
+    const res = await apiClient.get<{ key: string; value: string }>(`/admin/config/${key}`);
+    return res.data.value || '';
+}
+
+export async function setAdminConfig(key: string, value: string): Promise<void> {
+    await apiClient.put(`/admin/config/${key}`, { value });
+}

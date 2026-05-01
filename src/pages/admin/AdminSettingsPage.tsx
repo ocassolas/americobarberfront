@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Phone, Save, User, Mail, Pencil, Trash2 } from 'lucide-react';
+import { Phone, Save, User, Mail, Pencil, Trash2, Key, Copy, Check } from 'lucide-react';
 import { useToastStore } from '@/stores/useToastStore';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { updateProfile } from '@/services/api';
+import { updateProfile, getAdminConfig, setAdminConfig } from '@/services/api';
 import { maskPhone } from '@/utils/masks';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
@@ -51,6 +51,38 @@ export function AdminSettingsPage() {
     const [emailError, setEmailError] = useState('');
     const [phoneError, setPhoneError] = useState('');
     const addToast = useToastStore((s) => s.addToast);
+
+    // PIX config state
+    const [pixKey, setPixKey] = useState('');
+    const [pixKeyOriginal, setPixKeyOriginal] = useState('');
+    const [savingPix, setSavingPix] = useState(false);
+    const [pixCopied, setPixCopied] = useState(false);
+
+    useEffect(() => {
+        getAdminConfig('PIX_KEY').then((val) => {
+            setPixKey(val);
+            setPixKeyOriginal(val);
+        }).catch(() => {});
+    }, []);
+
+    const handleSavePix = async () => {
+        setSavingPix(true);
+        try {
+            await setAdminConfig('PIX_KEY', pixKey);
+            setPixKeyOriginal(pixKey);
+            addToast('success', 'Chave PIX atualizada com sucesso!');
+        } catch {
+            addToast('error', 'Erro ao salvar chave PIX.');
+        } finally {
+            setSavingPix(false);
+        }
+    };
+
+    const copyPixKey = () => {
+        navigator.clipboard.writeText(pixKey);
+        setPixCopied(true);
+        setTimeout(() => setPixCopied(false), 2000);
+    };
 
     // Crop state
     const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -280,6 +312,54 @@ export function AdminSettingsPage() {
                             <Save size={16} />
                         )}
                         Salvar Configurações
+                    </button>
+                </div>
+            </div>
+
+            {/* PIX Configuration Card */}
+            <div className="bg-bg-card card-surface border border-border rounded-2xl p-6 max-w-lg mx-auto">
+                <h2 className="font-heading font-semibold mb-2 flex items-center gap-2">
+                    <Key size={20} className="text-accent" />
+                    Chave PIX para Cancelamentos
+                </h2>
+                <p className="text-text-secondary text-xs mb-5">
+                    Esta chave será exibida para clientes que precisam pagar a multa de cancelamento.
+                </p>
+
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1.5 ml-1">Chave PIX</label>
+                        <div className="relative">
+                            <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 text-accent/50" size={18} />
+                            <input
+                                value={pixKey}
+                                onChange={(e) => setPixKey(e.target.value)}
+                                placeholder="Ex: email@exemplo.com, CPF, CNPJ ou chave aleatória"
+                                className="w-full bg-bg-input border border-border rounded-xl pl-11 pr-12 py-3 text-sm font-mono focus:border-accent outline-none transition"
+                            />
+                            {pixKey && (
+                                <button
+                                    onClick={copyPixKey}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-accent transition"
+                                    title="Copiar chave"
+                                >
+                                    {pixCopied ? <Check size={16} className="text-success" /> : <Copy size={16} />}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={handleSavePix}
+                        disabled={savingPix || pixKey === pixKeyOriginal}
+                        className="flex items-center gap-2 bg-accent hover:bg-accent-hover disabled:opacity-60 text-bg-primary font-semibold px-6 py-3 rounded-xl transition text-sm"
+                    >
+                        {savingPix ? (
+                            <div className="w-4 h-4 border-2 border-bg-primary/30 border-t-bg-primary rounded-full animate-spin" />
+                        ) : (
+                            <Save size={16} />
+                        )}
+                        Salvar Chave PIX
                     </button>
                 </div>
             </div>

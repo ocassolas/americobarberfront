@@ -26,6 +26,8 @@ import { AdminSettingsPage } from '@/pages/admin/AdminSettingsPage';
 import { BarbersManagementPage } from '@/pages/admin/BarbersManagementPage';
 import { ClientsManagementPage } from '@/pages/admin/ClientsManagementPage';
 import { GalleryManagementPage } from '@/pages/admin/GalleryManagementPage';
+import { CancellationPaymentsPage } from '@/pages/admin/CancellationPaymentsPage';
+import { CancellationPaymentOverlay } from '@/components/shared/CancellationPaymentOverlay';
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -60,6 +62,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <CancellationPaymentOverlay />
       <Routes>
         {/* Client routes */}
         <Route element={<ClientLayout />}>
@@ -88,6 +91,7 @@ function App() {
           <Route path="/admin/horarios" element={<WorkHoursPage />} />
           <Route path="/admin/configuracoes" element={<AdminSettingsPage />} />
           <Route path="/admin/galeria" element={<SuperAdminGuard><GalleryManagementPage /></SuperAdminGuard>} />
+          <Route path="/admin/cancelamentos" element={<CancellationPaymentsPage />} />
         </Route>
 
         {/* Catch-all */}

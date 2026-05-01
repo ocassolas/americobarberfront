@@ -1824,3 +1824,671 @@ input[type="time"] {
     font-size: 0.75rem;
   }
 }
+
+/* ============================================================
+   CANCELLATION PAYMENT OVERLAY (Client)
+   ============================================================ */
+
+.cancellation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(16px);
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.cancellation-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 0 60px rgba(212, 168, 83, 0.15);
+}
+
+.cancellation-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.cancellation-icon-warn {
+  color: var(--color-warning);
+  flex-shrink: 0;
+}
+
+.cancellation-title {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.cancellation-details {
+  background: var(--color-bg-input);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cancellation-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.cancellation-label {
+  color: var(--color-text-secondary);
+}
+
+.cancellation-value {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.cancellation-amount {
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+  margin-top: 0.25rem;
+}
+
+.cancellation-value-amount {
+  color: var(--color-accent);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.cancellation-pix-area {
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+
+.cancellation-pix-label {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.cancellation-pix-key {
+  background: var(--color-bg-input);
+  border: 1px dashed var(--color-accent);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  word-break: break-all;
+}
+
+.cancellation-pix-key code {
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+.cancellation-btn-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: var(--color-accent);
+  color: #000;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancellation-btn-copy:hover {
+  background: var(--color-accent-hover);
+  transform: translateY(-1px);
+}
+
+.cancellation-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.cancellation-btn-upload,
+.cancellation-btn-whatsapp {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancellation-btn-upload {
+  background: var(--color-accent);
+  color: #000;
+}
+
+.cancellation-btn-upload:hover {
+  background: var(--color-accent-hover);
+}
+
+.cancellation-btn-whatsapp {
+  background: #25D366;
+  color: #fff;
+}
+
+.cancellation-btn-whatsapp:hover {
+  background: #20bd5a;
+}
+
+.cancellation-info-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  transition: color 0.2s;
+}
+
+.cancellation-info-toggle:hover {
+  color: var(--color-accent);
+}
+
+.cancellation-info-box {
+  background: var(--color-bg-input);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-top: 0.75rem;
+  overflow: hidden;
+}
+
+.cancellation-info-box h3 {
+  color: var(--color-accent);
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.cancellation-info-box p {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+
+.cancellation-info-box p:last-child {
+  margin-bottom: 0;
+}
+
+.cancellation-awaiting {
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+.cancellation-icon-clock {
+  color: var(--color-accent);
+  margin: 0 auto 1rem;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+.cancellation-awaiting-text {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+
+/* Upload modal */
+.cancellation-upload-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 1rem;
+}
+
+.cancellation-upload-modal {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 420px;
+  width: 100%;
+  position: relative;
+}
+
+.cancellation-upload-modal h3 {
+  color: var(--color-text-primary);
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 0.25rem;
+}
+
+.cancellation-upload-modal p {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.cancellation-upload-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.cancellation-proof-preview {
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.cancellation-proof-preview img {
+  width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  background: #111;
+}
+
+.cancellation-proof-preview button {
+  width: 100%;
+  padding: 0.5rem;
+  background: var(--color-error);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.cancellation-btn-select-file {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 2rem;
+  border: 2px dashed var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-bg-input);
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 1rem;
+}
+
+.cancellation-btn-select-file:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.cancellation-btn-send {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--color-accent);
+  color: #000;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancellation-btn-send:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.cancellation-btn-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   ADMIN PENALTIES PAGE
+   ============================================================ */
+
+.penalty-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.penalty-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.penalty-tab:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+}
+
+.penalty-tab-active {
+  background: var(--color-accent);
+  color: #000;
+  border-color: var(--color-accent);
+  font-weight: 700;
+}
+
+.penalty-tab-badge {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.1rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.penalty-loading {
+  text-align: center;
+  color: var(--color-text-secondary);
+  padding: 3rem 0;
+}
+
+.penalty-empty {
+  text-align: center;
+  color: var(--color-text-secondary);
+  padding: 3rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.penalty-empty svg {
+  color: var(--color-success);
+  opacity: 0.5;
+}
+
+.penalty-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.penalty-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.penalty-card:hover {
+  border-color: var(--color-accent);
+}
+
+.penalty-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.penalty-client-info h3 {
+  color: var(--color-text-primary);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.penalty-phone {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+.penalty-status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid;
+}
+
+.penalty-card-body {
+  padding: 1rem 1.25rem;
+}
+
+.penalty-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.penalty-info-label {
+  display: block;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  margin-bottom: 0.15rem;
+}
+
+.penalty-info-value {
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.penalty-amount {
+  color: var(--color-accent) !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+}
+
+.penalty-reviewed {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+.penalty-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.penalty-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.penalty-btn:hover {
+  border-color: var(--color-accent);
+}
+
+.penalty-btn-view {
+  color: var(--color-info);
+  border-color: var(--color-info);
+}
+
+.penalty-btn-whatsapp {
+  color: #25D366;
+  border-color: #25D366;
+}
+
+.penalty-btn-confirm {
+  background: var(--color-success);
+  color: #fff;
+  border-color: var(--color-success);
+}
+
+.penalty-btn-reject {
+  background: var(--color-error);
+  color: #fff;
+  border-color: var(--color-error);
+}
+
+.penalty-btn-block {
+  background: #7c3aed;
+  color: #fff;
+  border-color: #7c3aed;
+}
+
+.penalty-btn-cancel-dialog {
+  background: var(--color-bg-input);
+  color: var(--color-text-secondary);
+}
+
+/* Proof & confirm modals */
+.penalty-proof-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  padding: 1rem;
+}
+
+.penalty-proof-modal {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  padding: 1rem;
+  max-width: 600px;
+  width: 100%;
+  position: relative;
+}
+
+.penalty-proof-modal img {
+  width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 0.5rem;
+}
+
+.penalty-proof-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  color: #fff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.penalty-confirm-dialog {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+}
+
+.penalty-confirm-dialog h3 {
+  color: var(--color-text-primary);
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.penalty-confirm-dialog p {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+
+.penalty-dialog-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.penalty-dialog-actions .penalty-btn {
+  padding: 0.6rem 1.5rem;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 480px) {
+  .cancellation-card {
+    padding: 1.25rem;
+  }
+
+  .cancellation-actions {
+    flex-direction: column;
+  }
+
+  .penalty-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .penalty-card-actions {
+    flex-direction: column;
+  }
+
+  .penalty-btn {
+    justify-content: center;
+  }
+}
