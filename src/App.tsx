@@ -26,10 +26,24 @@ import { AdminSettingsPage } from '@/pages/admin/AdminSettingsPage';
 import { BarbersManagementPage } from '@/pages/admin/BarbersManagementPage';
 import { ClientsManagementPage } from '@/pages/admin/ClientsManagementPage';
 import { GalleryManagementPage } from '@/pages/admin/GalleryManagementPage';
+import { AdminLoginPage } from '@/pages/admin/AdminLoginPage';
+
+function isAdminUser(user: ReturnType<typeof useAuthStore.getState>['user']) {
+  return user?.role === 'ROLE_ADMIN';
+}
+
+function AdminLoginGuard() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
+  if (isAuthenticated && isAdminUser(user)) return <Navigate to="/admin/dashboard" replace />;
+  return <AdminLoginPage />;
+}
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
   if (!isAuthenticated) return <Navigate to="/admin" replace />;
+  if (!isAdminUser(user)) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
@@ -39,9 +53,24 @@ function SuperAdminGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function ClientAreaGuard({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((s) => s.user);
+  if (isAdminUser(user)) return <Navigate to="/admin/dashboard" replace />;
+  return <>{children}</>;
+}
+
 function ClientGuard({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
+  if (isAdminUser(user)) return <Navigate to="/admin/dashboard" replace />;
   if (!isAuthenticated) return <Navigate to="/entrar" replace />;
+  return <>{children}</>;
+}
+
+function ClientAuthGuard({ children }: { children: React.ReactNode }) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
+  if (isAuthenticated && isAdminUser(user)) return <Navigate to="/admin/dashboard" replace />;
   return <>{children}</>;
 }
 
@@ -62,7 +91,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Client routes */}
-        <Route element={<ClientLayout />}>
+        <Route element={<ClientAreaGuard><ClientLayout /></ClientAreaGuard>}>
           {/* Public client routes */}
           <Route path="/" element={<LandingPage />} />
 
@@ -74,8 +103,11 @@ function App() {
         </Route>
 
         {/* Client Auth */}
-        <Route path="/entrar" element={<ClientLoginPage />} />
-        <Route path="/cadastrar" element={<ClientRegisterPage />} />
+        <Route path="/entrar" element={<ClientAuthGuard><ClientLoginPage /></ClientAuthGuard>} />
+        <Route path="/cadastrar" element={<ClientAuthGuard><ClientRegisterPage /></ClientAuthGuard>} />
+
+        {/* Admin login */}
+        <Route path="/admin" element={<AdminLoginGuard />} />
 
         {/* Admin authenticated routes */}
         <Route element={<AdminGuard><AdminLayout /></AdminGuard>}>
