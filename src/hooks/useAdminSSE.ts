@@ -29,12 +29,13 @@ export function useAdminSSE() {
                     }
 
                     if (event.event === 'APPOINTMENT_UPDATE') {
-                        // Sempre que houver um evento vindo do backend, atualizar o timestamp
-                        // Isso fará as listas dispararem re-render instantâneos
                         triggerUpdate();
-                        
-                        // Opcional: Mostraremos um toast silencioso (ou não invasivo) na tela avisando sobre.
                         addToast('success', '🔔 Uma mudança foi feita na Agenda!', 4000);
+                        return;
+                    }
+
+                    if (event.event === 'PENALTY_UPDATE') {
+                        triggerUpdate();
                     }
                 },
                 onclose() {
