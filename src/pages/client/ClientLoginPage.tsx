@@ -35,7 +35,6 @@ export function ClientLoginPage() {
             if (response.data.role === 'ROLE_CLIENT') {
                 navigate('/');
             } else {
-                // If an admin logs in through here by mistake, still let them in
                 navigate('/admin/dashboard');
             }
         } catch (err: any) {

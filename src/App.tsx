@@ -27,23 +27,22 @@ import { BarbersManagementPage } from '@/pages/admin/BarbersManagementPage';
 import { ClientsManagementPage } from '@/pages/admin/ClientsManagementPage';
 import { GalleryManagementPage } from '@/pages/admin/GalleryManagementPage';
 import { CancellationPenaltiesPage } from '@/pages/admin/CancellationPenaltiesPage';
-import { AdminLoginPage } from '@/pages/admin/AdminLoginPage';
 
 function isAdminUser(user: ReturnType<typeof useAuthStore.getState>['user']) {
   return user?.role === 'ROLE_ADMIN';
 }
 
-function AdminLoginGuard() {
+function AdminRootRedirect() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
   if (isAuthenticated && isAdminUser(user)) return <Navigate to="/admin/dashboard" replace />;
-  return <AdminLoginPage />;
+  return <Navigate to="/entrar" replace />;
 }
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
-  if (!isAuthenticated) return <Navigate to="/admin" replace />;
+  if (!isAuthenticated) return <Navigate to="/entrar" replace />;
   if (!isAdminUser(user)) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
@@ -107,8 +106,7 @@ function App() {
         <Route path="/entrar" element={<ClientAuthGuard><ClientLoginPage /></ClientAuthGuard>} />
         <Route path="/cadastrar" element={<ClientAuthGuard><ClientRegisterPage /></ClientAuthGuard>} />
 
-        {/* Admin login */}
-        <Route path="/admin" element={<AdminLoginGuard />} />
+        <Route path="/admin" element={<AdminRootRedirect />} />
 
         {/* Admin authenticated routes */}
         <Route element={<AdminGuard><AdminLayout /></AdminGuard>}>
