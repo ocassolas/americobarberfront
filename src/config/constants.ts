@@ -65,6 +65,7 @@ export const TEXT = {
         clients: 'Clientes',
         settings: 'Configurações',
         gallery: 'Galeria',
+        penalties: 'Comprovantes',
         logout: 'Sair',
     },
     settings: {

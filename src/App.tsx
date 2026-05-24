@@ -26,6 +26,7 @@ import { AdminSettingsPage } from '@/pages/admin/AdminSettingsPage';
 import { BarbersManagementPage } from '@/pages/admin/BarbersManagementPage';
 import { ClientsManagementPage } from '@/pages/admin/ClientsManagementPage';
 import { GalleryManagementPage } from '@/pages/admin/GalleryManagementPage';
+import { CancellationPenaltiesPage } from '@/pages/admin/CancellationPenaltiesPage';
 import { AdminLoginPage } from '@/pages/admin/AdminLoginPage';
 
 function isAdminUser(user: ReturnType<typeof useAuthStore.getState>['user']) {
@@ -120,6 +121,7 @@ function App() {
           <Route path="/admin/horarios" element={<WorkHoursPage />} />
           <Route path="/admin/configuracoes" element={<AdminSettingsPage />} />
           <Route path="/admin/galeria" element={<SuperAdminGuard><GalleryManagementPage /></SuperAdminGuard>} />
+          <Route path="/admin/comprovantes" element={<CancellationPenaltiesPage />} />
         </Route>
 
         {/* Catch-all */}

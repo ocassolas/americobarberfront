@@ -4,7 +4,9 @@ import { Calendar, Clock, XCircle, AlertTriangle, User, CheckCircle2, X, History
 import { getAppointments, cancelAppointment, acceptProposal, rejectProposal, rescheduleAppointment } from '@/services/api';
 import { useToastStore } from '@/stores/useToastStore';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { usePaymentPenalty } from '@/hooks/usePaymentPenalty';
 import { TEXT } from '@/config/constants';
+import { isLateCancellationWindow } from '@/utils/cancellationPolicy';
 import type { Appointment } from '@/types';
 import { ClientRescheduleModal } from '@/components/modals/ClientRescheduleModal';
 
@@ -26,6 +28,7 @@ export function MyAppointmentsPage() {
     const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
     const addToast = useToastStore((s) => s.addToast);
     const { user } = useAuthStore();
+    const { refresh: refreshPenalty } = usePaymentPenalty();
 
     const fetchAppointments = useCallback(async () => {
         setLoading(true);
@@ -51,8 +54,10 @@ export function MyAppointmentsPage() {
             setCancelId(null);
             setCancelReason('');
             addToast('success', TEXT.myAppointments.cancelled);
-        } catch {
-            addToast('error', 'Erro ao cancelar o agendamento.');
+            await refreshPenalty();
+        } catch (err: any) {
+            const message = err.response?.data?.message || 'Erro ao cancelar o agendamento.';
+            addToast('error', message);
         }
     };
 
@@ -71,6 +76,7 @@ export function MyAppointmentsPage() {
             await rejectProposal(id);
             addToast('success', 'Proposta rejeitada (agendamento cancelado).');
             fetchAppointments();
+            await refreshPenalty();
         } catch {
             addToast('error', 'Erro ao rejeitar proposta.');
         }
@@ -249,6 +255,17 @@ export function MyAppointmentsPage() {
                                 </div>
                                 <h3 className="font-heading font-bold text-xl">{TEXT.myAppointments.cancel}</h3>
                                 <p className="text-text-secondary text-sm mt-2">{TEXT.myAppointments.cancelConfirm}</p>
+                                {(() => {
+                                    const apt = appointments.find((a) => a.id === cancelId);
+                                    if (!apt) return null;
+                                    const late = isLateCancellationWindow(apt.date, apt.startTime as string);
+                                    if (!late) return null;
+                                    return (
+                                        <p className="text-warning text-xs mt-3 p-3 bg-warning/10 rounded-xl border border-warning/20">
+                                            Atenção: faltam menos de 12 horas para o horário. Ao cancelar, será cobrado o valor integral do serviço ({formatPrice(apt.totalPrice)}) e seu acesso ficará bloqueado até o pagamento.
+                                        </p>
+                                    );
+                                })()}
                             </div>
 
                             <div className="mb-6">

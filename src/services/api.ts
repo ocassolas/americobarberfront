@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient';
-import type { Appointment, AppointmentRequest, Barber, GalleryPhoto, Service, TimeSlot, WorkSchedule, AvailabilityResponse, DayOff, LocalTime } from '@/types';
+import type { Appointment, AppointmentRequest, Barber, CancellationPenalty, GalleryPhoto, PaymentSettings, Service, TimeSlot, WorkSchedule, AvailabilityResponse, DayOff, LocalTime } from '@/types';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 // Role-based helper
@@ -342,5 +342,48 @@ export async function updateGalleryPhoto(id: number, data: { imageData?: string;
 
 export async function deleteGalleryPhoto(id: number): Promise<void> {
     await apiClient.delete(`/admin/gallery/${id}`);
+}
+
+// ================= CANCELLATION PENALTIES =================
+export async function getActivePenalty(): Promise<CancellationPenalty | null> {
+    const res = await apiClient.get<CancellationPenalty>('/clients/payment-penalty/active', {
+        validateStatus: (status) => status === 200 || status === 204,
+    });
+    return res.status === 204 ? null : res.data;
+}
+
+export async function submitPenaltyProof(proofImage: string): Promise<CancellationPenalty> {
+    const res = await apiClient.post<CancellationPenalty>('/clients/payment-penalty/proof', { proofImage });
+    return res.data;
+}
+
+export async function getCancellationPenalties(): Promise<CancellationPenalty[]> {
+    const res = await apiClient.get<CancellationPenalty[]>('/admin/cancellation-penalties');
+    return res.data;
+}
+
+export async function approveCancellationPenalty(id: number, adminNotes?: string): Promise<CancellationPenalty> {
+    const res = await apiClient.post<CancellationPenalty>(`/admin/cancellation-penalties/${id}/approve`, { adminNotes });
+    return res.data;
+}
+
+export async function rejectCancellationPenalty(id: number, adminNotes?: string): Promise<CancellationPenalty> {
+    const res = await apiClient.post<CancellationPenalty>(`/admin/cancellation-penalties/${id}/reject`, { adminNotes });
+    return res.data;
+}
+
+export async function getPaymentSettings(): Promise<PaymentSettings> {
+    const res = await apiClient.get<PaymentSettings>('/admin/payment-settings');
+    return res.data;
+}
+
+export async function updatePaymentSettings(pixKey: string): Promise<PaymentSettings> {
+    const res = await apiClient.put<PaymentSettings>('/admin/payment-settings', { pixKey });
+    return res.data;
+}
+
+export async function getClientPixKey(): Promise<PaymentSettings> {
+    const res = await apiClient.get<PaymentSettings>('/clients/payment-penalty/pix-key');
+    return res.data;
 }
 

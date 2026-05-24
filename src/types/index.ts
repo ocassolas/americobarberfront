@@ -15,6 +15,7 @@ export interface UserResponse {
     active: boolean;
     isBarber: boolean;
     isOwner: boolean;
+    paymentBlocked?: boolean;
     createdAt: string;
     assignedBarberId: number | null;
     slotIntervalMinutes: number;
@@ -34,6 +35,7 @@ export interface LoginResponse {
     role: string;
     isBarber: boolean;
     isOwner: boolean;
+    paymentBlocked?: boolean;
     profilePicture?: string;
     description?: string;
     descriptionUpdatedAt?: string;
@@ -184,5 +186,32 @@ export interface GalleryPhoto {
     title?: string;
     displayOrder: number;
     createdAt: string;
+}
+
+export type PenaltyStatus = 'PENDING_PAYMENT' | 'PROOF_SUBMITTED' | 'APPROVED' | 'REJECTED';
+
+export interface PaymentSettings {
+    pixKey: string;
+    updatedAt?: string;
+}
+
+export interface CancellationPenalty {
+    id: number;
+    clientId: number;
+    clientName: string;
+    clientEmail: string;
+    clientPhone: string;
+    appointmentId: number;
+    appointmentDate: string;
+    appointmentStartTime: string;
+    amount: number;
+    status: PenaltyStatus;
+    proofImage?: string;
+    adminNotes?: string;
+    reviewedById?: number;
+    reviewedByName?: string;
+    createdAt: string;
+    proofSubmittedAt?: string;
+    reviewedAt?: string;
 }
 

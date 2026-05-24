@@ -10,6 +10,7 @@ interface AuthStore {
     login: (data: LoginResponse) => void;
     logout: () => void;
     setUser: (user: UserResponse) => void;
+    setPaymentBlocked: (blocked: boolean) => void;
     triggerUpdate: () => void;
 }
 
@@ -33,6 +34,7 @@ export const useAuthStore = create<AuthStore>()(
                     active: true,
                     isBarber: data.isBarber,
                     isOwner: data.isOwner,
+                    paymentBlocked: data.paymentBlocked ?? false,
                     createdAt: new Date().toISOString(),
                     assignedBarberId: null,
                     slotIntervalMinutes: 30, 
@@ -43,6 +45,9 @@ export const useAuthStore = create<AuthStore>()(
             }),
             logout: () => set({ isAuthenticated: false, token: null, user: null }),
             setUser: (user: UserResponse) => set({ user }),
+            setPaymentBlocked: (blocked: boolean) => set((state) => ({
+                user: state.user ? { ...state.user, paymentBlocked: blocked } : null,
+            })),
             triggerUpdate: () => set({ lastUpdateTimestamp: Date.now() }),
         }),
         { name: 'americo-auth' }
